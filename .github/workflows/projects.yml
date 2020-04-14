@@ -23,6 +23,6 @@ jobs:
     - uses: actions/checkout@v2
     
     - name: Delete merged branch
-    - uses: SvanBoxel/delete-merged-branch@v1.3.3
+      uses: SvanBoxel/delete-merged-branch@v1.3.3
     - name: todo-actions
-    - uses: dtinth/todo-actions@v0.2.0
+      uses: dtinth/todo-actions@v0.2.0
