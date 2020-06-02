@@ -186,6 +186,19 @@ bool GSMSim::isSimInserted() {
 	}
 }
 
+bool GSMSim::enterPinCode(char* pinCode) {
+	this->print(F("AT+CPIN=\""));
+	this->print(pinCode);
+	this->print(F("\"\r"));
+	_readSerial();
+
+	if(_buffer.indexOf(F("ERROR")) != -1) {
+		return false;
+	} else {
+		return true;
+	}
+}
+
 // Pin statüsü - AT+CPIN?
 uint8_t GSMSim::pinStatus() {
 	this->print(F("AT+CPIN?\r"));

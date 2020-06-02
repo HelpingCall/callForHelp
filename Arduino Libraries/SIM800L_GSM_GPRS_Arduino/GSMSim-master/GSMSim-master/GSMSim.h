@@ -96,6 +96,8 @@ class GSMSim : public SoftwareSerial
 		bool isRegistered();
 		// Sim kart takılımı
 		bool isSimInserted();
+		//enter pin
+		bool enterPinCode(char* pinCode);
 		// pin durumu
 		uint8_t pinStatus();
 		// operatör adı
