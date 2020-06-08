@@ -13,7 +13,7 @@ const char* password = "schnuller";   // The password required to connect to it,
 
 //#define Sim_TX D1 // TX Pin des Sim Moduls
 //#define Sim_RX D2 // RX Pin des Sim Moduls
-
+//CommitTest
 bool DeviceConfigured = false;
 int oldStatus = 0;
 CRGB leds[NUM_LEDS];
