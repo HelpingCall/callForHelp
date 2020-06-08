@@ -4,15 +4,15 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266HTTPClient.h>
 
-const char* ssid = "FRITZ!Box 7530 UM"; // The name of the Wi-Fi network that will be created
+const char* ssid = "CallForHelp_Device"; // The name of the Wi-Fi network that will be created
 const char* password = "schnuller";   // The password required to connect to it, leave blank for an open network
 
-#define LED_PIN    4  // Pin für die LED Data
+#define LED_PIN    5  // Pin für die LED Data
 #define NUM_LEDS   3  // Anzahl der LEDs zur Anzeige vom Status etc.
-#define SWITCH_PIN 5  // Pin des Schalters
+#define SWITCH_PIN D0  // Pin des Schalters
 
-#define Sim_TX D1 // TX Pin des Sim Moduls
-#define Sim_RX D2 // RX Pin des Sim Moduls
+//#define Sim_TX D1 // TX Pin des Sim Moduls
+//#define Sim_RX D2 // RX Pin des Sim Moduls
 
 bool DeviceConfigured = false;
 int oldStatus = 0;
@@ -20,20 +20,25 @@ CRGB leds[NUM_LEDS];
 
 ESP8266WebServer CFHWebServer(80);
 
-String DeviceConfigurationTemplate = "DeviceAlreadyConfigured:TRUE";
+char DeviceConfigurationTemplate[29] = "DeviceAlreadyConfigured:TRUE";
 
-String NetworkSSID = "UPCFCD4EB1";   // ggf. = CFHWebServer.arg("NetworkSSID");
+String NetworkSSID = "FRITZ!Box 7530 UM";   // ggf. = CFHWebServer.arg("NetworkSSID");
 String NetworkPassword = "Anke1209"; // ggf. = CFHWebServer.arg("NetworkPassword");
 
 void setup()
 {
   Serial.begin(115200);
-  EEPROM.begin(1024);
-
   Serial.println();
-  Serial.println("CallForHelp Gestartet");
+  Serial.println("ESP8266 Started");
+  pinMode(SWITCH_PIN, INPUT_PULLDOWN_16);
+  FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
+  FastLED.setBrightness(20);
 
-  Serial.println("---------------------------------------------------------------------------");
+  leds[2] = CRGB(0, 0, 255);
+  leds[1] = CRGB(0, 0, 255);
+  leds[0] = CRGB(0, 0, 255);
+  FastLED.show();
+
 
   if (!DeviceAlreadyConfigured()) //Wenn das Gerät noch nicht konfiguriert wurde
   {
@@ -53,6 +58,29 @@ void setup()
       Serial.println("---------------------------------------------------------------------------");
     });
 
+    CFHWebServer.on("/ShowEEPROM", []()
+    {
+      CFHWebServer.send(200, "text/plain", "Showing EEPROM");
+      GetFullEEPROM();
+      Serial.println("---------------------------------------------------------------------------");
+    });
+
+    CFHWebServer.on("/writeEEPROM", []()
+    {
+      CFHWebServer.send(200, "text/plain", "Writing EEPROM");
+      EEPROM.begin(786);
+      EEPROM.put(30, "abcdefghijklmnopqrstuvwxyz1234567890");
+      EEPROM.commit();
+      delay(1000);
+      Serial.print("Value in EEPROM: ");
+      char WritingEEPROM[37];
+      EEPROM.get(30, WritingEEPROM);
+      Serial.println(WritingEEPROM);
+      EEPROM.end();
+      Serial.println("---------------------------------------------------------------------------");
+
+    });
+
     CFHWebServer.on("/", []()
     {
       CFHWebServer.send(200, "text/plain", "ESP-Startseite!");
@@ -69,16 +97,14 @@ void setup()
   }
   else                           //Wenn das Gerät bereits konfiguriert wurde
   {
-    Serial.println("Waiting for Input!");
-
-    pinMode(SWITCH_PIN, INPUT_PULLUP);
-    FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
-    FastLED.setBrightness(20);
-
-    leds[2] = CRGB(255, 0, 0);
-    leds[1] = CRGB(255, 0, 0);
-    leds[0] = CRGB(255, 0, 0);
+    Serial.println("CallForHelp Gestartet");
+    leds[0] = CRGB(0, 0, 0);
+    leds[1] = CRGB(0, 255, 0);
+    leds[2] = CRGB(0, 255, 0);
     FastLED.show();
+    Serial.println("---------------------------------------------------------------------------");
+
+    Serial.println("Waiting for Input");
   }
 }
 
@@ -87,11 +113,12 @@ void loop()
   if(DeviceConfigured) //Do Buttonstate if Device is already configured
   {
     int ButtonState = digitalRead(SWITCH_PIN);
-    if (ButtonState == oldStatus) //Schalter an bei ButtonState == 0 | Schalter aus bei ButtonState == 1
+    Serial.println(ButtonState);
+    if (ButtonState != oldStatus) //Schalter an bei ButtonState == 1 | Schalter aus bei ButtonState == 0
     {
       ButtonSwitched(ButtonState);
     }
-    delay(50);
+    delay(500);
   }
   else
   {
@@ -101,19 +128,23 @@ void loop()
 
 bool DeviceAlreadyConfigured()
 {
-  if(EEPROM.get(30, DeviceConfigurationTemplate).equals("DeviceAlreadyConfigured:TRUE"))
+  EEPROM.begin(786);
+  Serial.println("Checking if Device is already configured");
+  char CheckDeviceConfiguration[29];
+  EEPROM.get(0, CheckDeviceConfiguration);
+
+  Serial.print("Check Value: ");
+  Serial.println(CheckDeviceConfiguration);
+  EEPROM.end();
+  if(String(CheckDeviceConfiguration).equals(String(DeviceConfigurationTemplate)))
   {
-    Serial.println("EEPROM correct!");
-    Serial.print("EEPROM_Value: ");
-    Serial.println(EEPROM.get(30, DeviceConfigurationTemplate));
+    Serial.println("Device Configuration confirmed!");
     DeviceConfigured = true;
     return true;
   }
   else
   {
-    Serial.println("EEPROM wrong!");
-    Serial.print("EEPROM_Value: ");
-    Serial.println(EEPROM.get(30, DeviceConfigurationTemplate));
+    Serial.println("Device Configuration failed!");
     DeviceConfigured = false;
     return false;
   }
@@ -129,48 +160,85 @@ void RegisterDevice()
   if (CFHWebServer.hasArg("userID") && CFHWebServer.hasArg("jwt"))
   {
     Serial.print("userID: ");
-    Serial.println(CFHWebServer.arg("userID"));
-    String UserIDParameter = CFHWebServer.arg("UserID");
+    String UserIDParameter = CFHWebServer.arg("userID");
+    Serial.println(UserIDParameter);
 
     Serial.print("jwt: ");
-    Serial.println(CFHWebServer.arg("jwt"));
     String jwtParameter = CFHWebServer.arg("jwt");
+    Serial.println(jwtParameter);
 
-    if(ConnectToWifi(NetworkSSID, NetworkPassword))
+    if(ConnectToWifi())
     {
       if(TestUserIDandJWT(UserIDParameter, jwtParameter))
       {
-        EEPROM.put(100, UserIDParameter);
-        EEPROM.put(200, jwtParameter);
+        EEPROM.begin(786);
 
-        EEPROM.put(30, DeviceConfigurationTemplate);
+        EEPROM.put(0, DeviceConfigurationTemplate);
+
+        char UID[37];
+        UserIDParameter.toCharArray(UID, 37);
+        char JWT[513];
+        jwtParameter.toCharArray(JWT, 513);
+
+
+        EEPROM.put(40, UID);
+
+        EEPROM.put(100, JWT);
+
+        Serial.print("EEPROM[0]: ");
+        char DCT[29];
+        EEPROM.get(0, DCT);
+        Serial.println(DCT);
+
+        Serial.print("EEPROM[40]: ");
+        char UIDP[37];
+        EEPROM.get(40, UIDP);
+        Serial.println(UIDP);
+
+        Serial.print("EEPROM[100]: ");
+        char JWTP[513];
+        EEPROM.get(100, JWTP);
+        Serial.println(JWTP);
+
+        EEPROM.commit();
+        EEPROM.end();
+
         RegistrationSucceed = true;
         WiFi.disconnect();
+        WiFi.softAPdisconnect();
       }
     }
     else
     {
-      if(ConnectToMobile())
+      if(false)
       {
         if(TestUserIDandJWT(UserIDParameter, jwtParameter))
         {
+          Serial.print("Putting to EEPROM: ");
+          Serial.println(UserIDParameter);
           EEPROM.put(100, UserIDParameter);
+
+          Serial.print("Putting to EEPROM: ");
+          Serial.println(jwtParameter);
           EEPROM.put(200, jwtParameter);
 
           EEPROM.put(30, DeviceConfigurationTemplate);
+          EEPROM.commit();
+          delay(1000);
           RegistrationSucceed = true;
           //Mobile.disconnect();
         }
       }
     }
-    
+
     if (RegistrationSucceed)
     {
       CFHWebServer.send(200, "text/plain", "true");
 
       Serial.println("Gerät erfolgreich registriert");
-      Serial.println("---------------------------------------------------------------------------");
       CFHWebServer.close();
+
+      Serial.println("---------------------------------------------------------------------------");
     }
     else
     {
@@ -191,123 +259,11 @@ void RegisterDevice()
       message += CFHWebServer.arg(i) + "\n";
       Serial.println(message);
     }
+      CFHWebServer.send(200, "text/plain", "false");
+
+      Serial.println("Gerät wurde nicht erfolgreich registriert");
+      Serial.println("---------------------------------------------------------------------------");
   }
-}
-
-void ButtonSwitched(int SwitchState)
-{
-  Serial.print("Button Switched to ");
-  Serial.println(SwitchState);
-  int SwitchTime = 0;
-  Serial.print("waiting for confirmation");
-  while (digitalRead(SWITCH_PIN) == SwitchState && SwitchTime < 5)
-  {
-    Serial.print(".");
-    SwitchTime++;
-    delay(1000);
-  }
-  if (SwitchTime < 5) return;
-
-  Serial.println("success");
-
-  if (!ConnectToWifi(NetworkSSID, NetworkPassword))
-  {
-    if (!ConnectToMobile())
-    {
-      Serial.println("No Network connection!");
-      return;
-    }
-  }
-    
-  if (SwitchState == 0)
-  {
-    TriggerAlarm();
-  }
-  else if (SwitchState == 1)
-  {
-    DisarmAlarm();
-  }
-  else
-  {
-    Serial.println("failed");
-    Serial.println("---------------------------------------------------------------------------");
-  }
-}
-
-void TriggerAlarm()
-{
-  String userID = GetDataFromEEPROM(100, 36);
-  String jwt = GetDataFromEEPROM(200, 512);
-  String lattitude = String(GetLattitude());
-  String longitude = String(GetLongitude());
-
-  String ArmDeviceLink = "http://babyyodahook.xyz/rest/arm?userID=" +userID +"&lat=" + lattitude +"&long=" +longitude +"&jwt=" +jwt;
-
-  HTTPClient http;
-
-  http.begin(ArmDeviceLink);
-  int httpCode = http.GET();
-  Serial.print("Code: ");
-  Serial.println(httpCode);
-  if (httpCode > 0)
-  {
-    String httpPayload = http.getString();
-    Serial.print("Text: ");
-    Serial.println(httpPayload);
-    if(httpPayload.equals("true"))
-    {
-      Serial.println("Alarm triggered");
-      leds[1] = CRGB(0, 255, 0);
-      leds[2] = CRGB(0, 255, 0);
-    }
-  }
-  else
-  {
-    Serial.println("Alarm not triggered");
-  }
-  http.end();
-  leds[0] = CRGB(255, 0, 0);
-
-  FastLED.show();
-  Serial.println("---------------------------------------------------------------------------");
-  oldStatus = 1;
-}
-
-void DisarmAlarm()
-{
-  String userID = GetDataFromEEPROM(100, 36);
-  String jwt = GetDataFromEEPROM(200, 512);
-
-  String DisarmDeviceLink = "http://babyyodahook.xyz/rest/disarm?userID=" +userID +"&jwt=" +jwt;
-
-  HTTPClient http;
-
-  http.begin(DisarmDeviceLink);
-  int httpCode = http.GET();
-  Serial.print("Code: ");
-  Serial.println(httpCode);
-  if (httpCode > 0)
-  {
-    String httpPayload = http.getString();
-    Serial.print("Text: ");
-    Serial.println(httpPayload);
-    if(httpPayload.equals("true"))
-    {
-      Serial.println("Alarm disarmed");
-      leds[1] = CRGB(255, 0, 0);
-      leds[2] = CRGB(255, 0, 0);
-    }
-  }
-  else
-  {
-    Serial.println("Alarm not disarmed");
-  }
-  http.end();
-  leds[0] = CRGB(255, 0, 0);
-
-  FastLED.show();
-  Serial.println("---------------------------------------------------------------------------");
-  oldStatus = 0;
 }
 
 bool TestUserIDandJWT(String UserID, String JWT)
@@ -345,7 +301,197 @@ bool TestUserIDandJWT(String UserID, String JWT)
   }
 }
 
-bool ConnectToWifi(String NetworkSSID, String NetworkPassword)
+void ButtonSwitched(int SwitchState)
+{
+  Serial.print("Button Switched to ");
+  Serial.println(SwitchState);
+  Serial.println();
+  int SwitchTime = 0;
+  Serial.print("waiting for confirmation");
+  while (digitalRead(SWITCH_PIN) == SwitchState && SwitchTime <= 5)
+  {
+    Serial.print(".");
+
+    if(SwitchState == 1)
+    {
+      if(leds[1] == CRGB(0,0,0) && leds[2] == CRGB(0,0,0))
+      {
+        leds[1] = CRGB(0, 255, 0);
+        leds[2] = CRGB(0, 255, 0);
+      }
+      else if(leds[1] == CRGB(0,255,0) && leds[2] == CRGB(0,255,0))
+      {
+        leds[1] = CRGB(0, 0, 0);
+        leds[2] = CRGB(0, 0, 0);
+      }
+    }
+    else if(SwitchState == 0)
+    {
+      if(leds[1] == CRGB(0,0,0) && leds[2] == CRGB(0,0,0))
+      {
+        leds[1] = CRGB(255, 0, 0);
+        leds[2] = CRGB(255, 0, 0);
+      }
+      else if(leds[1] == CRGB(255,0,0) && leds[2] == CRGB(255,0,0))
+      {
+        leds[1] = CRGB(0, 0, 0);
+        leds[2] = CRGB(0, 0, 0);
+      }
+    }
+    FastLED.show();
+    SwitchTime++;
+    delay(1000);
+  }
+  if(SwitchTime < 5 && digitalRead(SWITCH_PIN) != SwitchState)
+  {
+    if(SwitchState == 1)
+    {
+      leds[1] = CRGB(0, 255, 0);
+      leds[2] = CRGB(0, 255, 0);
+    }
+    else if(SwitchState == 0)
+    {
+      leds[1] = CRGB(255, 0, 0);
+      leds[2] = CRGB(255, 0, 0);
+    }
+    FastLED.show();
+    Serial.println("failed");
+    return;
+  }
+
+  Serial.println("success");
+  if (!ConnectToWifi())
+  {
+    if (!ConnectToMobile())
+    {
+      Serial.println("No Network connection!");
+      return;
+    }
+  }
+    
+  if (SwitchState == 1)
+  {
+    TriggerAlarm();
+  }
+  else if (SwitchState == 0)
+  {
+    DisarmAlarm();
+  }
+  else
+  {
+    Serial.println("failed");
+    Serial.println("---------------------------------------------------------------------------");
+  }
+  leds[0] = CRGB(0, 0, 0);
+  FastLED.show();
+}
+
+void TriggerAlarm()
+{
+  EEPROM.begin(786);
+
+  char userID[37];
+  EEPROM.get(40, userID);
+  Serial.print("ID: ");
+  Serial.println(userID);
+
+  char jwt[513];
+  EEPROM.get(100, jwt);
+  Serial.print("jwt: ");
+  Serial.println(jwt);
+
+  EEPROM.end();
+  delay(1000);
+
+  String lattitude = String(GetLattitude());
+  String longitude = String(GetLongitude());
+
+  String ArmDeviceLink = "http://babyyodahook.xyz/rest/arm?userID=" +String(userID) +"&lat=" + lattitude +"&long=" +longitude +"&jwt=" +String(jwt);
+
+  Serial.print("ArmString: ");
+  Serial.println(ArmDeviceLink);
+
+  HTTPClient http;
+
+  http.begin(ArmDeviceLink);
+  int httpCode = http.GET();
+  Serial.print("Code: ");
+  Serial.println(httpCode);
+  if (httpCode > 0)
+  {
+    String httpPayload = http.getString();
+    Serial.print("Text: ");
+    Serial.println(httpPayload);
+    if(httpPayload.equals("true"))
+    {
+      Serial.println("Alarm triggered");
+      leds[1] = CRGB(255, 0, 0);
+      leds[2] = CRGB(255, 0, 0);
+    }
+  }
+  else
+  {
+    Serial.println("Alarm not triggered");
+  }
+  http.end();
+
+  FastLED.show();
+  Serial.println("---------------------------------------------------------------------------");
+  oldStatus = 1;
+}
+
+void DisarmAlarm()
+{
+  EEPROM.begin(786);
+
+  char userID[37];
+  EEPROM.get(40, userID);
+  Serial.print("ID: ");
+  Serial.println(userID);
+
+  char jwt[513];
+  EEPROM.get(100, jwt);
+  Serial.print("jwt: ");
+  Serial.println(jwt);
+
+  EEPROM.end();
+  delay(1000);
+
+  String DisarmDeviceLink = "http://babyyodahook.xyz/rest/disarm?userID=" +String(userID) +"&jwt=" +String(jwt);
+
+  Serial.print("DisarmString: ");
+  Serial.println(DisarmDeviceLink);
+
+  HTTPClient http;
+
+  http.begin(DisarmDeviceLink);
+  int httpCode = http.GET();
+  Serial.print("Code: ");
+  Serial.println(httpCode);
+  if (httpCode > 0)
+  {
+    String httpPayload = http.getString();
+    Serial.print("Text: ");
+    Serial.println(httpPayload);
+    if(httpPayload.equals("true"))
+    {
+      Serial.println("Alarm disarmed");
+      leds[1] = CRGB(0, 255, 0);
+      leds[2] = CRGB(0, 255, 0);
+      oldStatus = 0;
+    }
+  }
+  else
+  {
+    Serial.println("Alarm not disarmed");
+  }
+  http.end();
+
+  FastLED.show();
+  Serial.println("---------------------------------------------------------------------------");
+}
+
+bool ConnectToWifi()
 {
   WiFi.begin(NetworkSSID, NetworkPassword);
   int WLANConnectionTime = 0;
@@ -355,10 +501,10 @@ bool ConnectToWifi(String NetworkSSID, String NetworkPassword)
   {
     if (leds[0] == CRGB(0, 0, 255))
     {
-      leds[0] = CRGB(0, 255, 0);
+      leds[0] = CRGB(0, 0, 0);
 
     }
-    else if (leds[0] == CRGB(0, 255, 0))
+    else if (leds[0] == CRGB(0, 0, 0))
     {
       leds[0] = CRGB(0, 0, 255);
     }
@@ -395,6 +541,7 @@ void GetGPS()
 
 void ClearEEPROM()
 {
+  EEPROM.begin(786);
   Serial.println("Deleting");
   delay(2000);
   for (int i = 0 ; i < EEPROM.length() ; i++) 
@@ -406,14 +553,17 @@ void ClearEEPROM()
   //Hier die Orte für jwt, userID und DeviceConfigured angeben
 
   EEPROM.commit();
+  delay(1000);
   Serial.println();
   Serial.println("Finished Deleting EEPROM.old");
 
   Serial.println();
+  EEPROM.end();
 }
 
 void GetFullEEPROM()
 {
+  EEPROM.begin(786);
   Serial.print("EEPROM: ");
   for (int i = 0 ; i < EEPROM.length() ; i++) 
   {
@@ -421,21 +571,11 @@ void GetFullEEPROM()
     Serial.print(i);
     Serial.print("]");
     Serial.print(char(int(EEPROM.read(i))));
-    Serial.print(" : ");
+    Serial.print("\t");
     delay(5);
   }
   Serial.println();
-}
-
-String GetDataFromEEPROM(int Address, int DataSize)
-{
-  Serial.println("Get Data from EEPROM");
-  char buffer[DataSize];
-  for (int i = 0 ; i < DataSize ; i++) 
-  {
-    buffer[i] = EEPROM.read(Address + i);
-  }
-  return String(buffer);
+  EEPROM.end();
 }
 
 float GetLattitude()
@@ -445,5 +585,5 @@ float GetLattitude()
 
 float GetLongitude()
 {
-  return 40.0;
+  return 10.0;
 }
