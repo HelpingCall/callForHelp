@@ -7085,8 +7085,7 @@ include  Type MT6; con-amp-mt6.lbr&lt;p&gt;
 <part name="TOGGLE_SWITCH" library="switch" library_urn="urn:adsk.eagle:library:380" deviceset="320-916" device="" package3d_urn="urn:adsk.eagle:package:27678/1"/>
 <part name="5V_REGULATOR" library="TPS61022RWUR" deviceset="TPS61022RWUR" device=""/>
 <part name="4.2V_REGULATOR" library="TPS61022RWUR" deviceset="TPS61022RWUR" device=""/>
-<part name="BAT_GND" library="con-amp-mt" library_urn="urn:adsk.eagle:library:123" deviceset="L02P" device="" package3d_urn="urn:adsk.eagle:package:5777/1"/>
-<part name="BAT_VCC" library="con-amp-mt" library_urn="urn:adsk.eagle:library:123" deviceset="L02P" device="" package3d_urn="urn:adsk.eagle:package:5777/1"/>
+<part name="BATTERIE" library="con-amp-mt" library_urn="urn:adsk.eagle:library:123" deviceset="L02P" device="" package3d_urn="urn:adsk.eagle:package:5777/1"/>
 </parts>
 <sheets>
 <sheet>
@@ -7125,13 +7124,13 @@ include  Type MT6; con-amp-mt6.lbr&lt;p&gt;
 <attribute name="NAME" x="242.57" y="96.52" size="1.778" layer="95" align="center-left"/>
 <attribute name="VALUE" x="242.57" y="93.98" size="1.778" layer="96" align="center-left"/>
 </instance>
-<instance part="BAT_GND" gate="-1" x="259.08" y="27.94" smashed="yes" grouprefs="BATTERIE_CONNECTOR">
-<attribute name="NAME" x="258.572" y="28.956" size="1.778" layer="95" rot="R180"/>
-<attribute name="VALUE" x="259.334" y="25.527" size="1.778" layer="96"/>
+<instance part="BATTERIE" gate="-1" x="251.46" y="30.48" smashed="yes">
+<attribute name="NAME" x="250.952" y="31.496" size="1.778" layer="95" rot="R180"/>
+<attribute name="VALUE" x="251.714" y="28.067" size="1.778" layer="96"/>
 </instance>
-<instance part="BAT_VCC" gate="-1" x="259.08" y="25.4" smashed="yes" grouprefs="BATTERIE_CONNECTOR">
-<attribute name="NAME" x="258.572" y="26.416" size="1.778" layer="95" rot="R180"/>
-<attribute name="VALUE" x="259.334" y="22.987" size="1.778" layer="96"/>
+<instance part="BATTERIE" gate="-2" x="251.46" y="25.4" smashed="yes">
+<attribute name="NAME" x="250.952" y="26.416" size="1.778" layer="95" rot="R180"/>
+<attribute name="VALUE" x="251.714" y="22.987" size="1.778" layer="96"/>
 </instance>
 </instances>
 <busses>
@@ -7267,31 +7266,30 @@ include  Type MT6; con-amp-mt6.lbr&lt;p&gt;
 <junction x="83.82" y="2.54"/>
 <pinref part="WEMOS1" gate="D1" pin="GND"/>
 <wire x1="55.88" y1="15.24" x2="38.1" y2="15.24" width="0.1524" layer="91"/>
-</segment>
-</net>
-<net name="N$12" class="0">
-<segment>
-<pinref part="WEMOS1" gate="D1" pin="D7"/>
-<wire x1="5.08" y1="17.78" x2="2.54" y2="17.78" width="0.1524" layer="91"/>
-<wire x1="2.54" y1="17.78" x2="2.54" y2="2.54" width="0.1524" layer="91"/>
-<label x="-15.24" y="12.7" size="1.778" layer="95"/>
-<wire x1="2.54" y1="2.54" x2="48.26" y2="2.54" width="0.1524" layer="91"/>
-<wire x1="48.26" y1="2.54" x2="48.26" y2="43.18" width="0.1524" layer="91"/>
-<pinref part="TOGGLE_SWITCH" gate="1" pin="O"/>
-<wire x1="106.68" y1="101.6" x2="111.76" y2="101.6" width="0.1524" layer="91"/>
-<wire x1="106.68" y1="43.18" x2="106.68" y2="101.6" width="0.1524" layer="91"/>
-<wire x1="48.26" y1="43.18" x2="106.68" y2="43.18" width="0.1524" layer="91"/>
-</segment>
-</net>
-<net name="N$11" class="0">
-<segment>
 <pinref part="LED3" gate="G$1" pin="GND"/>
 <pinref part="LED2" gate="G$1" pin="GND"/>
 <junction x="55.88" y="66.04"/>
 <wire x1="55.88" y1="66.04" x2="88.9" y2="66.04" width="0.1524" layer="91"/>
 <pinref part="LED1" gate="G$1" pin="GND"/>
 <wire x1="22.86" y1="66.04" x2="55.88" y2="66.04" width="0.1524" layer="91"/>
-<label x="22.86" y="55.88" size="1.778" layer="95"/>
+<wire x1="38.1" y1="15.24" x2="22.86" y2="15.24" width="0.1524" layer="91"/>
+<wire x1="22.86" y1="15.24" x2="22.86" y2="66.04" width="0.1524" layer="91"/>
+<junction x="38.1" y="15.24"/>
+<junction x="22.86" y="66.04"/>
+</segment>
+</net>
+<net name="TOGGLE_SWITCH" class="0">
+<segment>
+<pinref part="WEMOS1" gate="D1" pin="D7"/>
+<wire x1="5.08" y1="17.78" x2="2.54" y2="17.78" width="0.1524" layer="91"/>
+<wire x1="2.54" y1="17.78" x2="2.54" y2="2.54" width="0.1524" layer="91"/>
+<wire x1="2.54" y1="2.54" x2="48.26" y2="2.54" width="0.1524" layer="91"/>
+<wire x1="48.26" y1="2.54" x2="48.26" y2="43.18" width="0.1524" layer="91"/>
+<pinref part="TOGGLE_SWITCH" gate="1" pin="O"/>
+<wire x1="106.68" y1="101.6" x2="111.76" y2="101.6" width="0.1524" layer="91"/>
+<wire x1="106.68" y1="43.18" x2="106.68" y2="101.6" width="0.1524" layer="91"/>
+<wire x1="48.26" y1="43.18" x2="106.68" y2="43.18" width="0.1524" layer="91"/>
+<label x="-17.78" y="10.16" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="N$13" class="0">
@@ -7302,21 +7300,22 @@ include  Type MT6; con-amp-mt6.lbr&lt;p&gt;
 </net>
 <net name="N$8" class="0">
 <segment>
-<pinref part="BAT_GND" gate="-1" pin="S"/>
-<wire x1="264.16" y1="27.94" x2="264.16" y2="45.72" width="0.1524" layer="91"/>
-<wire x1="264.16" y1="45.72" x2="213.36" y2="45.72" width="0.1524" layer="91"/>
+<wire x1="259.08" y1="30.48" x2="259.08" y2="45.72" width="0.1524" layer="91"/>
+<wire x1="259.08" y1="45.72" x2="213.36" y2="45.72" width="0.1524" layer="91"/>
 <pinref part="TP4056" gate="G$1" pin="B-"/>
 <wire x1="213.36" y1="45.72" x2="213.36" y2="40.64" width="0.1524" layer="91"/>
+<pinref part="BATTERIE" gate="-1" pin="S"/>
+<wire x1="256.54" y1="30.48" x2="259.08" y2="30.48" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$10" class="0">
 <segment>
-<pinref part="BAT_VCC" gate="-1" pin="S"/>
-<wire x1="264.16" y1="25.4" x2="269.24" y2="25.4" width="0.1524" layer="91"/>
-<wire x1="269.24" y1="25.4" x2="269.24" y2="50.8" width="0.1524" layer="91"/>
+<wire x1="264.16" y1="25.4" x2="264.16" y2="50.8" width="0.1524" layer="91"/>
 <pinref part="TP4056" gate="G$1" pin="B+"/>
-<wire x1="269.24" y1="50.8" x2="208.28" y2="50.8" width="0.1524" layer="91"/>
+<wire x1="264.16" y1="50.8" x2="208.28" y2="50.8" width="0.1524" layer="91"/>
 <wire x1="208.28" y1="50.8" x2="208.28" y2="40.64" width="0.1524" layer="91"/>
+<pinref part="BATTERIE" gate="-2" pin="S"/>
+<wire x1="256.54" y1="25.4" x2="264.16" y2="25.4" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$14" class="0">

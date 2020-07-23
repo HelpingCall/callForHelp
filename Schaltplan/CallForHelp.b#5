@@ -1846,10 +1846,10 @@ design rules under a new name.</description>
 <attribute name="SPICEPREFIX" value="R" x="-30.48" y="30.48" size="1.778" layer="27" display="off"/>
 <attribute name="VALUE" x="-32.1056" y="29.9974" size="0.9906" layer="27" ratio="10"/>
 </element>
-<element name="TOGGLE_SWITCH" library="switch" library_urn="urn:adsk.eagle:library:380" package="320-916" package3d_urn="urn:adsk.eagle:package:27678/1" value="" x="-5.08" y="-20.32" smashed="yes" rot="R90">
-<attribute name="NAME" x="-12.7" y="-22.86" size="1.778" layer="25" ratio="10" rot="R90"/>
-<attribute name="POPULARITY" value="4" x="-5.08" y="-20.32" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="VALUE" x="4.445" y="-22.86" size="1.778" layer="27" ratio="10" rot="R90"/>
+<element name="TOGGLE_SWITCH" library="switch" library_urn="urn:adsk.eagle:library:380" package="320-916" package3d_urn="urn:adsk.eagle:package:27678/1" value="" x="45.72" y="5.08" smashed="yes" rot="R90">
+<attribute name="NAME" x="38.1" y="2.54" size="1.778" layer="25" ratio="10" rot="R90"/>
+<attribute name="POPULARITY" value="4" x="45.72" y="5.08" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="VALUE" x="55.245" y="2.54" size="1.778" layer="27" ratio="10" rot="R90"/>
 </element>
 <element name="5V_REGULATOR" library="TPS61022RWUR" package="TPS61022RWUR" value="TPS61022RWUR" x="27.94" y="66.04" smashed="yes">
 <attribute name="ARROW_PART_NUMBER" value="TPS61022RWUR" x="27.94" y="66.04" size="1.778" layer="27" display="off"/>
@@ -1875,7 +1875,7 @@ design rules under a new name.</description>
 <attribute name="NAME" x="33.02" y="68.58" size="1.27" layer="25" align="center"/>
 <attribute name="VALUE" x="33.02" y="66.04" size="1.27" layer="27" align="center"/>
 </element>
-<element name="BAT_GND" library="con-amp-mt" library_urn="urn:adsk.eagle:library:123" package="L02P" package3d_urn="urn:adsk.eagle:package:5777/1" value="" x="-46.99" y="-15.24" smashed="yes">
+<element name="BATTERIE" library="con-amp-mt" library_urn="urn:adsk.eagle:library:123" package="L02P" package3d_urn="urn:adsk.eagle:package:5777/1" value="" x="-46.99" y="-15.24" smashed="yes">
 <attribute name="MF" value="" x="-46.99" y="-15.24" size="1.778" layer="27" display="off"/>
 <attribute name="MPN" value="" x="-46.99" y="-15.24" size="1.778" layer="27" display="off"/>
 <attribute name="NAME" x="-51.7598" y="-24.03" size="1.27" layer="25" ratio="10"/>
@@ -1883,15 +1883,6 @@ design rules under a new name.</description>
 <attribute name="OC_NEWARK" value="unknown" x="-46.99" y="-15.24" size="1.778" layer="27" display="off"/>
 <attribute name="POPULARITY" value="1" x="-46.99" y="-15.24" size="1.778" layer="27" display="off"/>
 <attribute name="VALUE" x="-50.185" y="-16.41" size="1.27" layer="27" ratio="10" rot="R90"/>
-</element>
-<element name="BAT_VCC" library="con-amp-mt" library_urn="urn:adsk.eagle:library:123" package="L02P" package3d_urn="urn:adsk.eagle:package:5777/1" value="" x="-58.42" y="-15.24" smashed="yes">
-<attribute name="MF" value="" x="-58.42" y="-15.24" size="1.778" layer="27" display="off"/>
-<attribute name="MPN" value="" x="-58.42" y="-15.24" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="-63.1898" y="-24.03" size="1.27" layer="25" ratio="10"/>
-<attribute name="OC_FARNELL" value="unknown" x="-58.42" y="-15.24" size="1.778" layer="27" display="off"/>
-<attribute name="OC_NEWARK" value="unknown" x="-58.42" y="-15.24" size="1.778" layer="27" display="off"/>
-<attribute name="POPULARITY" value="1" x="-58.42" y="-15.24" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-61.615" y="-16.41" size="1.27" layer="27" ratio="10" rot="R90"/>
 </element>
 </elements>
 <signals>
@@ -1947,41 +1938,40 @@ design rules under a new name.</description>
 <contactref element="WEMOS1" pad="5V"/>
 <wire x1="-16.51" y1="53.34" x2="27.315" y2="65.49" width="0" layer="19" extent="1-1"/>
 <wire x1="-10.16" y1="26.67" x2="-16.51" y2="53.34" width="0" layer="19" extent="1-1"/>
-<wire x1="-5.08" y1="-20.32" x2="-10.16" y2="26.67" width="0" layer="19" extent="1-1"/>
+<wire x1="45.72" y1="5.08" x2="-10.16" y2="26.67" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="GND">
 <contactref element="TP4056" pad="OUT-"/>
 <contactref element="4.2V_REGULATOR" pad="1"/>
 <contactref element="5V_REGULATOR" pad="1"/>
 <contactref element="WEMOS1" pad="GND"/>
-<wire x1="32.395" y1="66.59" x2="103.505" y2="56.515" width="0" layer="19" extent="1-1"/>
-<wire x1="27.315" y1="66.59" x2="32.395" y2="66.59" width="0" layer="19" extent="1-1"/>
-<wire x1="-12.7" y1="26.67" x2="27.315" y2="66.59" width="0" layer="19" extent="1-1"/>
-</signal>
-<signal name="N$12">
-<contactref element="WEMOS1" pad="D7"/>
-<contactref element="TOGGLE_SWITCH" pad="1"/>
-<wire x1="-15.24" y1="3.81" x2="-9.0932" y2="-20.32" width="0" layer="19" extent="1-1"/>
-</signal>
-<signal name="N$11">
 <contactref element="LED2" pad="VSS"/>
 <contactref element="LED1" pad="VSS"/>
 <contactref element="LED3" pad="VSS"/>
+<wire x1="32.395" y1="66.59" x2="103.505" y2="56.515" width="0" layer="19" extent="1-1"/>
+<wire x1="27.315" y1="66.59" x2="32.395" y2="66.59" width="0" layer="19" extent="1-1"/>
+<wire x1="-3.38" y1="68.04" x2="27.315" y2="66.59" width="0" layer="19" extent="1-1"/>
 <wire x1="-12.27" y1="68.04" x2="-3.38" y2="68.04" width="0" layer="19" extent="1-1"/>
 <wire x1="-24.86" y1="67.74" x2="-12.27" y2="68.04" width="0" layer="19" extent="1-1"/>
+<wire x1="-12.7" y1="26.67" x2="-12.27" y2="68.04" width="0" layer="19" extent="1-1"/>
+</signal>
+<signal name="TOGGLE_SWITCH">
+<contactref element="WEMOS1" pad="D7"/>
+<contactref element="TOGGLE_SWITCH" pad="1"/>
+<wire x1="-15.24" y1="3.81" x2="41.7068" y2="5.08" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="N$13">
 <contactref element="SIM800L" pad="GND"/>
 </signal>
 <signal name="N$8">
-<contactref element="BAT_GND" pad="1"/>
 <contactref element="TP4056" pad="B-"/>
+<contactref element="BATTERIE" pad="1"/>
 <wire x1="-45.74" y1="-21.49" x2="103.505" y2="59.69" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="N$10">
-<contactref element="BAT_VCC" pad="1"/>
 <contactref element="TP4056" pad="B+"/>
-<wire x1="-57.17" y1="-21.49" x2="103.505" y2="67.31" width="0" layer="19" extent="1-1"/>
+<contactref element="BATTERIE" pad="2"/>
+<wire x1="-48.24" y1="-21.49" x2="103.505" y2="67.31" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="N$14">
 <contactref element="SIM800L" pad="VCC"/>
