@@ -5,6 +5,9 @@
 #include <ESP8266HTTPClient.h>
 #include <ESP8266mDNS.h>
 
+#include <CFH_RegisterDevice.h>
+
+
 const char* ssid = "CallForHelp_Device"; // The name of the Wi-Fi network that will be created
 const char* password = "schnuller";   // The password required to connect to it, leave blank for an open network
 
@@ -22,6 +25,7 @@ CRGB leds[NUM_LEDS];
 //TODO: DNS Server aktivieren für CallForHelp
 
 ESP8266WebServer CFHWebServer(80);
+CFH_RegisterDevice regDevice;
 
 char DeviceConfigurationTemplate[29] = "DeviceAlreadyConfigured:TRUE";
 
@@ -42,8 +46,7 @@ void setup()
   leds[0] = CRGB(0, 0, 255);
   FastLED.show();
 
-
-  if (!DeviceAlreadyConfigured()) //Wenn das Gerät noch nicht konfiguriert wurde
+  if (!regDevice.DeviceAlreadyConfigured()) //Wenn das Gerät noch nicht konfiguriert wurde
   {
     Serial.println();
     WiFi.softAP(ssid, password);
@@ -74,7 +77,7 @@ void setup()
     CFHWebServer.on("/ShowEEPROM", []()
     {
       CFHWebServer.send(200, "text/plain", "Showing EEPROM");
-      GetFullEEPROM();
+      regDevice.GetFullEEPROM();
       Serial.println("---------------------------------------------------------------------------");
     });
 
@@ -146,30 +149,6 @@ void loop()
   }
 }
 
-bool DeviceAlreadyConfigured()
-{
-  EEPROM.begin(786);
-  Serial.println("Checking if Device is already configured");
-  char CheckDeviceConfiguration[29];
-  EEPROM.get(0, CheckDeviceConfiguration);
-
-  Serial.print("Check Value: ");
-  Serial.println(CheckDeviceConfiguration);
-  EEPROM.end();
-  if(String(CheckDeviceConfiguration).equals(String(DeviceConfigurationTemplate)))
-  {
-    Serial.println("Device Configuration confirmed!");
-    DeviceConfigured = true;
-    return true;
-  }
-  else
-  {
-    Serial.println("Device Configuration failed!");
-    DeviceConfigured = false;
-    return false;
-  }
-}
-
 void RegisterDevice()
 {
   bool RegistrationSucceed = false;
@@ -189,7 +168,7 @@ void RegisterDevice()
 
     if(ConnectToWifi())
     {
-      if(TestUserIDandJWT(UserIDParameter, jwtParameter))
+      if(regDevice.TestUserIDandJWT(UserIDParameter, jwtParameter))
       {
         EEPROM.begin(786);
 
@@ -232,7 +211,7 @@ void RegisterDevice()
     {
       if(false)
       {
-        if(TestUserIDandJWT(UserIDParameter, jwtParameter))
+        if(regDevice.TestUserIDandJWT(UserIDParameter, jwtParameter))
         {
           Serial.print("Putting to EEPROM: ");
           Serial.println(UserIDParameter);
@@ -286,40 +265,7 @@ void RegisterDevice()
   }
 }
 
-bool TestUserIDandJWT(String UserID, String JWT)
-{
-  HTTPClient http;
-  String RegisterDeviceCode = "http://babyyodahook.xyz/rest/RegisterDevice?userID=" + String(UserID) + "&jwt=" + String(JWT);
-  Serial.print("Trying to register Device: ");
-  Serial.println(RegisterDeviceCode);
 
-  http.begin(RegisterDeviceCode);
-  int httpCode = http.GET();
-  Serial.print("Code: ");
-  Serial.println(httpCode);
-
-  if (httpCode > 0)
-  {
-    String httpPayload = http.getString();
-    Serial.print("Text: ");
-    Serial.println(httpPayload);
-    if (httpPayload.equals("true"))
-    {
-      http.end();
-      return true;
-    }
-    else
-    {
-      http.end();
-      return false;
-    }
-  }
-  else
-  {
-    http.end();
-    return false;
-  }
-}
 
 void ButtonSwitched(int SwitchState)
 {
@@ -554,49 +500,6 @@ bool ConnectToMobile()
   return false;
 }
 
-void GetGPS()
-{
-  
-}
-
-void ClearEEPROM()
-{
-  EEPROM.begin(786);
-  Serial.println("Deleting");
-  delay(2000);
-  for (int i = 0 ; i < EEPROM.length() ; i++) 
-  {
-    EEPROM.write(i, 0);
-  }
-  delay(1000);
-
-  //Hier die Orte für jwt, userID und DeviceConfigured angeben
-
-  EEPROM.commit();
-  delay(1000);
-  Serial.println();
-  Serial.println("Finished Deleting EEPROM.old");
-
-  Serial.println();
-  EEPROM.end();
-}
-
-void GetFullEEPROM()
-{
-  EEPROM.begin(786);
-  Serial.print("EEPROM: ");
-  for (int i = 0 ; i < EEPROM.length() ; i++) 
-  {
-    Serial.print("[");
-    Serial.print(i);
-    Serial.print("]");
-    Serial.print(char(int(EEPROM.read(i))));
-    Serial.print("\t");
-    delay(5);
-  }
-  Serial.println();
-  EEPROM.end();
-}
 
 float GetLattitude()
 {
@@ -607,3 +510,6 @@ float GetLongitude()
 {
   return 10.0;
 }
+
+
+// Implementiert
