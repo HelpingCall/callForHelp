@@ -10,7 +10,7 @@ const char* ssid = "CallForHelp_Device"; // The name of the Wi-Fi network that w
 const char* password = "schnuller";   // The password required to connect to it, leave blank for an open network
 
 #define LED_PIN    5  // Pin für die LED Data
-#define NUM_LEDS   3  // Anzahl der LEDs zur Anzeige vom Status etc.
+#define NUM_LEDS   1  // Anzahl der LEDs zur Anzeige vom Status etc.
 #define SWITCH_PIN D0  // Pin des Schalters
 
 //#define Sim_TX D1 // TX Pin des Sim Moduls
@@ -133,9 +133,7 @@ void setup()
 	FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
 	FastLED.setBrightness(20);
 
-	leds[2] = CRGB(0, 0, 255);
-	leds[1] = CRGB(0, 0, 255);
-	leds[0] = CRGB(0, 0, 255);
+	leds[0] = CRGB(255, 255, 255);
 	FastLED.show();
 
 	if (!CFH_Device.DeviceAlreadyConfigured()) //Wenn das Gerät noch nicht konfiguriert wurde
@@ -210,8 +208,6 @@ void setup()
 	{
 		Serial.println("CallForHelp Gestartet");
 		leds[0] = CRGB(0, 0, 0);
-		leds[1] = CRGB(0, 255, 0);
-		leds[2] = CRGB(0, 255, 0);
 		FastLED.show();
 		Serial.println("---------------------------------------------------------------------------");
 
@@ -252,28 +248,24 @@ void ButtonSwitched(int SwitchState)
 
 		if (SwitchState == 1)
 		{
-			if (leds[1] == CRGB(0, 0, 0) && leds[2] == CRGB(0, 0, 0))
+			if (leds[0] == CRGB(0, 0, 0))
 			{
-				leds[1] = CRGB(0, 255, 0);
-				leds[2] = CRGB(0, 255, 0);
+				leds[0] = CRGB(255, 0, 0);
 			}
-			else if (leds[1] == CRGB(0, 255, 0) && leds[2] == CRGB(0, 255, 0))
+			else if (leds[0] == CRGB(255, 0, 0))
 			{
-				leds[1] = CRGB(0, 0, 0);
-				leds[2] = CRGB(0, 0, 0);
+				leds[0] = CRGB(0, 0, 0);
 			}
 		}
 		else if (SwitchState == 0)
 		{
-			if (leds[1] == CRGB(0, 0, 0) && leds[2] == CRGB(0, 0, 0))
+			if (leds[0] == CRGB(0, 0, 0))
 			{
-				leds[1] = CRGB(255, 0, 0);
-				leds[2] = CRGB(255, 0, 0);
+				leds[0] = CRGB(0, 255, 0);
 			}
-			else if (leds[1] == CRGB(255, 0, 0) && leds[2] == CRGB(255, 0, 0))
+			else if (leds[0] == CRGB(0, 255, 0))
 			{
-				leds[1] = CRGB(0, 0, 0);
-				leds[2] = CRGB(0, 0, 0);
+				leds[0] = CRGB(0, 0, 0);
 			}
 		}
 		FastLED.show();
@@ -380,8 +372,7 @@ void TriggerAlarm()
 
 	if (CFH_Device.TriggerAlarm(GPS_Position.Latitude, GPS_Position.Longitude))
 	{
-		leds[1] = CRGB(255, 0, 0);
-		leds[2] = CRGB(255, 0, 0);
+		leds[0] = CRGB(255, 0, 0);
 		FastLED.show();
 		oldStatus = 1;
 	}
@@ -399,8 +390,11 @@ void DisarmAlarm()
 	if (CFH_Device.DisarmAlarm())
 	{
 		Serial.println("Alarm disarmed");
-		leds[1] = CRGB(0, 255, 0);
-		leds[2] = CRGB(0, 255, 0);
+		leds[0] = CRGB(0, 255, 0);
+		FastLED.show();
+
+		delay(10000);
+		leds[0] = CRGB(0, 0, 0);
 		FastLED.show();
 		oldStatus = 0;
 	}

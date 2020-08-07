@@ -10,26 +10,37 @@
 const char* ssid = "CallForHelp_Device"; // The name of the Wi-Fi network that will be created
 const char* password = "schnuller";   // The password required to connect to it, leave blank for an open network
 
-char DeviceConfigurationTemplate[29] = "DeviceAlreadyConfigured:TRUE";
+const char DeviceConfigurationTemplate[29] = "DeviceAlreadyConfigured:TRUE";
 
+const String TriggerAlarmHTTPRequestLink = "http://babyyodahook.xyz/rest/arm";
+const String DisarmAlarmHTTPRequestLink = "http://babyyodahook.xyz/rest/disarm";
+const String RegisterDeviceHTTPRequestLink = "http://babyyodahook.xyz/rest/RegisterDevice";
 
+const int DeviceID_Size = 37;
+const int UserID_Size = 37;
+const int JWT_Size = 513;
+
+const int DeviceID_Position = 30;
+const int UserID_Position = 70;
+const int JWT_position = 110;
 
 #pragma region HTTP_Functions
 
-CFH_Structs::HTTP_Request_Struct CFH_DeviceFunctions::TestUserIDandJWT(String UserID, String JWT)
+CFH_Structs::HTTP_Request_Struct CFH_DeviceFunctions::TestUserIDandJWT(String UserID, String JWT) //Can't be shortened as it returns a different type than boolean
 {
-	HTTPClient http;
-	CFH_Structs::HTTP_Request_Struct JSON_HTTP_Request = {"false", ""};
-	String RegisterDeviceCode = "http://babyyodahook.xyz/rest/RegisterDevice?json=" + JSON_Instance.SerializeRegisterDevice(UserID, JWT);
 	Serial.print("Trying to register Device: ");
-	Serial.println(RegisterDeviceCode);
+	Serial.println(RegisterDeviceHTTPRequestLink);
 
-	http.begin(RegisterDeviceCode);   // old version without client
-	int httpCode = http.GET();
+  	HTTPClient http;
+  	http.begin(RegisterDeviceHTTPRequestLink);
+	http.addHeader("Content-Type", "application/json");
+
+	int httpCode = http.POST(JSON_Instance.SerializeRegisterDevice(UserID, JWT));
 	Serial.print("Code: ");
 	Serial.println(httpCode);
 
-	
+	CFH_Structs::HTTP_Request_Struct JSON_HTTP_Request = {"false", ""};
+
 	if (httpCode > 0)
 	{
 		JSON_HTTP_Request = JSON_Instance.DeserializeHTTPRequest(http.getString());
@@ -45,6 +56,92 @@ CFH_Structs::HTTP_Request_Struct CFH_DeviceFunctions::TestUserIDandJWT(String Us
 		http.end(); //Ends HTTP Request
 		return JSON_HTTP_Request;
 	}
+}
+
+bool CFH_DeviceFunctions::TriggerAlarm(String latitude, String longitude)
+{
+	EEPROM.begin(786);
+	Serial.print("EEPROM[30]: ");
+	String deivceasd = "asdadsa";
+    char DeviceID[DeviceID_Size];
+    EEPROM.get(DeviceID_Position, DeviceID);
+    Serial.println(DeviceID);
+
+    Serial.print("EEPROM[70]: ");
+    char UserID[UserID_Size];
+    EEPROM.get(UserID_Position, UserID);
+    Serial.println(UserID);
+
+    Serial.print("EEPROM[110]: ");
+    char JWT[JWT_Size];
+    EEPROM.get(JWT_position, JWT);
+    Serial.println(JWT);
+
+  	EEPROM.end();
+  	delay(1000);
+
+	Serial.println("Trigger Alarm: ");
+	return Connection_Instance.BooleanHTTPRequest(TriggerAlarmHTTPRequestLink, JSON_Instance.SerializeTriggerAlarm(DeviceID, UserID, JWT, latitude, longitude));
+}
+
+bool CFH_DeviceFunctions::DisarmAlarm()
+{
+	EEPROM.begin(786);
+
+	Serial.print("EEPROM[30]: ");
+    char DeviceID[DeviceID_Size];
+    EEPROM.get(DeviceID_Position, DeviceID);
+    Serial.println(DeviceID);
+
+    Serial.print("EEPROM[70]: ");
+    char UserID[UserID_Size];
+    EEPROM.get(UserID_Position, UserID);
+    Serial.println(UserID);
+
+    Serial.print("EEPROM[110]: ");
+    char JWT[JWT_Size];
+    EEPROM.get(JWT_position, JWT);
+    Serial.println(JWT);
+
+  	EEPROM.end();
+  	delay(1000);
+
+	Serial.println("Disarm Alarm: ");
+	return Connection_Instance.BooleanHTTPRequest(DisarmAlarmHTTPRequestLink, JSON_Instance.SerializeDisarmAlarm(DeviceID, UserID, JWT));
+}
+
+#pragma endregion
+
+
+
+#pragma region Basic_Functions
+
+
+#pragma endregion
+
+
+
+#pragma region EEPROM_Functions
+
+String getDeviceIDfromEEPROM()
+{
+	char DeviceID[37];
+    EEPROM.get(30, DeviceID);
+	return DeviceID;
+}
+
+String getUserIDfromEEPROM()
+{
+	char UserID[37];
+    EEPROM.get(70, UserID);
+	return UserID;
+}
+
+String getJWTfromEEPROM()
+{
+	char JWT[37];
+    EEPROM.get(110, JWT);
+	return JWT;
 }
 
 void CFH_DeviceFunctions::writeConfigured(String JWT, String UserID, String DeviceID)
@@ -68,6 +165,9 @@ void CFH_DeviceFunctions::writeConfigured(String JWT, String UserID, String Devi
 
     EEPROM.put(110, JWT_Array);
 
+	EEPROM.commit();
+
+
 	//Testing
 
     Serial.print("EEPROM[0]: ");
@@ -90,15 +190,8 @@ void CFH_DeviceFunctions::writeConfigured(String JWT, String UserID, String Devi
     EEPROM.get(110, jwt_test);
     Serial.println(jwt_test);
 
-    EEPROM.commit();
     EEPROM.end();
 }
-
-#pragma endregion
-
-
-
-#pragma region Basic_Functions
 
 bool CFH_DeviceFunctions::DeviceAlreadyConfigured()
 {
@@ -124,133 +217,6 @@ bool CFH_DeviceFunctions::DeviceAlreadyConfigured()
 	}
 }
 
-bool CFH_DeviceFunctions::TriggerAlarm(String latitude, String longitude)
-{
-	EEPROM.begin(786);
-
-	Serial.print("EEPROM[30]: ");
-    char DeviceID[37];
-    EEPROM.get(30, DeviceID);
-    Serial.println(DeviceID);
-
-    Serial.print("EEPROM[70]: ");
-    char UserID[37];
-    EEPROM.get(70, UserID);
-    Serial.println(UserID);
-
-    Serial.print("EEPROM[110]: ");
-    char JWT[513];
-    EEPROM.get(110, JWT);
-    Serial.println(JWT);
-
-  	EEPROM.end();
-  	delay(1000);
-
-  	String ArmDeviceLink = "http://babyyodahook.xyz/rest/arm?json=" +JSON_Instance.SerializeTriggerAlarm(DeviceID, UserID, JWT, latitude, longitude);
-
-  	Serial.print("ArmString: ");
-  	Serial.println(ArmDeviceLink);
-
-  	HTTPClient http;
-
-  	http.begin(ArmDeviceLink);
-	int httpCode = http.GET();
-	Serial.print("Code: ");
-	Serial.println(httpCode);
-
-	CFH_Structs::HTTP_Request_Struct JSON_HTTP_Request = {"false", ""};
-
-	if (httpCode > 0)
-	{
-		JSON_HTTP_Request = JSON_Instance.DeserializeHTTPRequest(http.getString());
-
-		if(JSON_HTTP_Request.Success)
-		{
-			Serial.println("Alarm triggered");
-			http.end(); //Ends HTTP Request
-			return true;
-		}
-		else
-		{
-			Serial.println("Alarm not triggered");
-			http.end(); //Ends HTTP Request
-			return false;
-		}
-	}
-	else
-	{
-		Serial.println("Alarm not triggered");
-		http.end(); //Ends HTTP Request
-		return false;
-	}
-}
-
-bool CFH_DeviceFunctions::DisarmAlarm()
-{
-	EEPROM.begin(786);
-
-	Serial.print("EEPROM[30]: ");
-    char DeviceID[37];
-    EEPROM.get(30, DeviceID);
-    Serial.println(DeviceID);
-
-    Serial.print("EEPROM[70]: ");
-    char UserID[37];
-    EEPROM.get(70, UserID);
-    Serial.println(UserID);
-
-    Serial.print("EEPROM[110]: ");
-    char JWT[513];
-    EEPROM.get(110, JWT);
-    Serial.println(JWT);
-
-  	EEPROM.end();
-  	delay(1000);
-
-  	String DisrmDeviceLink = "http://babyyodahook.xyz/rest/arm?json=" +JSON_Instance.SerializeDisarmAlarm(DeviceID, UserID, JWT);
-
-  	Serial.print("DisarmString: ");
-  	Serial.println(DisrmDeviceLink);
-
-  	HTTPClient http;
-
-  	http.begin(DisrmDeviceLink);
-	int httpCode = http.GET();
-	Serial.print("Code: ");
-	Serial.println(httpCode);
-
-	CFH_Structs::HTTP_Request_Struct JSON_HTTP_Request = {"false", ""};
-
-	if (httpCode > 0)
-	{
-		JSON_HTTP_Request = JSON_Instance.DeserializeHTTPRequest(http.getString());
-
-		if(JSON_HTTP_Request.Success)
-		{
-			Serial.println("Alarm disarmed");
-			http.end(); //Ends HTTP Request
-			return true;
-		}
-		else
-		{
-			Serial.println("Alarm not disarmed");
-			http.end(); //Ends HTTP Request
-			return false;
-		}
-	}
-	else
-	{
-		Serial.println("Alarm not disarmed");
-		http.end(); //Ends HTTP Request
-		return false;
-	}
-}
-
-#pragma endregion
-
-
-
-#pragma region Essential_EEPROM
 
 void CFH_DeviceFunctions::clearEEPROM()
 {

@@ -24,3 +24,44 @@ CFH_Structs::GPS_Position getGPS_position()
 
     return current_gps_position;
 }
+
+
+bool CFH_Connection::BooleanHTTPRequest(String RequestLink, String JSON_String)
+{
+    Serial.print("RequestLink: ");
+  	Serial.println(RequestLink);
+
+  	HTTPClient http;
+  	http.begin(RequestLink);
+	http.addHeader("Content-Type", "application/json");
+
+	int httpCode = http.POST(JSON_String);
+	Serial.print("Code: ");
+	Serial.println(httpCode);
+
+	CFH_Structs::HTTP_Request_Struct JSON_HTTP_Request = {"false", ""};
+
+	if (httpCode > 0)
+	{
+		JSON_HTTP_Request = JSON_Connection_Instance.DeserializeHTTPRequest(http.getString());
+
+		if(JSON_HTTP_Request.Success)
+		{
+			Serial.println("success");
+			http.end(); //Ends HTTP Request
+			return true;
+		}
+		else
+		{
+			Serial.println("failed #1");
+			http.end(); //Ends HTTP Request
+			return false;
+		}
+	}
+	else
+	{
+		Serial.println("failed #2");
+		http.end(); //Ends HTTP Request
+		return false;
+	}
+}

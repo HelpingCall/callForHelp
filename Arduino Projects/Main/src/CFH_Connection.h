@@ -4,13 +4,16 @@
 #include <Arduino.h>
 
 #include <CFH_Structs.h>
-
+#include <CFH_JSON.h>
 #define DEFAULT_SIM_PIN_RX 1
 #define DEFAULT_SIM_PIN_TX 2
 #define DEFAULT_SIM_PIN_RST 3
 
 class CFH_Connection
 {
+
+private:
+    CFH_JSON JSON_Connection_Instance;
 public:
 
     unsigned int SIM_PIN_RX;
@@ -48,7 +51,8 @@ public:
     //Returns Struct containing latitude and longitude
     CFH_Structs::GPS_Position getGPS_position();
 
-    //Makes the HTTP Request
+    //Starts the HTTP Request itself
+    bool BooleanHTTPRequest(String link, String JSON_String);
 
 };
 
