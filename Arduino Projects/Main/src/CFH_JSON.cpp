@@ -57,7 +57,7 @@ String CFH_JSON::SerializeRegisterDevice(String userID, String jwt)
 
 #pragma endregion
 
-int test = 0;
+
 
 #pragma region Deserialize
 
