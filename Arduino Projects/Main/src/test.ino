@@ -1,7 +1,7 @@
 #include <Arduino.h>
-#include <CFH_RegisterDevice.h>
+#include <CFH_DeviceFunctions.h>
 
-CFH_RegisterDevice rd;
+CFH_DeviceFunctions rd;
 
 void setup()
 {
