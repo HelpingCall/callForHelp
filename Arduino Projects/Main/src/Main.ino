@@ -8,9 +8,10 @@
 
 const char* ssid = "CallForHelp_Device"; // The name of the Wi-Fi network that will be created
 const char* password = "schnuller";   // The password required to connect to it, leave blank for an open network
+const char* CFH_DNS_Name = "CFH_Device";
 
 #define LED_PIN    5  // Pin für die LED Data
-#define NUM_LEDS   1  // Anzahl der LEDs zur Anzeige vom Status etc.
+#define NUM_LEDS   2  // Anzahl der LEDs zur Anzeige vom Status etc.
 #define SWITCH_PIN D0  // Pin des Schalters
 
 //#define Sim_TX D1 // TX Pin des Sim Moduls
@@ -25,16 +26,17 @@ CRGB leds[NUM_LEDS];
 ESP8266WebServer CFHWebServer(80);
 CFH_DeviceFunctions CFH_Device;
 
-String NetworkSSID = "FRITZ!Box 7530 UM";   // ggf. = CFHWebServer.arg("NetworkSSID");
-String NetworkPassword = "Anke1209"; // ggf. = CFHWebServer.arg("NetworkPassword");
+//String NetworkSSID = "FRITZ!Box 7530 UM";   // ggf. = CFHWebServer.arg("NetworkSSID");
+//String NetworkPassword = "Anke1209"; // ggf. = CFHWebServer.arg("NetworkPassword");
 
-
+String NetworkSSID = "Magnus";   // ggf. = CFHWebServer.arg("NetworkSSID");
+String NetworkPassword = "Schnuller"; // ggf. = CFHWebServer.arg("NetworkPassword");
 
 
 // starting registration of device
 bool RegisterDevice()
 {
-	bool RegistrationSucceed = false;
+	bool RegistrationSuccess = false;
 
 	Serial.print("Number of Arguments: ");
 	Serial.println(CFHWebServer.args());
@@ -50,18 +52,17 @@ bool RegisterDevice()
 		String jwtParameter = CFHWebServer.arg("jwt");
 		Serial.println(CFHWebServer.arg("jwt"));
 
-		if (ConnectToWifi())
+		if(ConnectToWifi())
 		{
+			Serial.println("Testing UserID and JWT");
 			CFH_Structs::HTTP_Request_Struct TestUserIDandJWTStruct = CFH_Device.TestUserIDandJWT(UserIDParameter, jwtParameter);
-
+			
 			if (TestUserIDandJWTStruct.Success)
 			{
 				CFH_Device.writeConfigured(jwtParameter, UserIDParameter, TestUserIDandJWTStruct.deviceID);
-
-				RegistrationSucceed = true;
-				WiFi.disconnect();
-				WiFi.softAPdisconnect();
+				RegistrationSuccess = true;
 			}
+			WiFi.disconnect();
 		}
 		else
 		{
@@ -73,20 +74,19 @@ bool RegisterDevice()
 				{
 					CFH_Device.writeConfigured(jwtParameter, UserIDParameter, TestUserIDandJWTStruct.deviceID);
 
-					RegistrationSucceed = true;
+					RegistrationSuccess = true;
 
 					//disconnect Mobile
 				}
 			}
-
-			return RegistrationSucceed;
 		}
 
-		if (RegistrationSucceed)
+		if (RegistrationSuccess)
 		{
 			CFHWebServer.send(200, "text/plain", "true");
 
 			Serial.println("Gerät erfolgreich registriert");
+			WiFi.softAPdisconnect();
 			CFHWebServer.close();
 
 			Serial.println("---------------------------------------------------------------------------");
@@ -98,6 +98,8 @@ bool RegisterDevice()
 			Serial.println("Gerät wurde nicht erfolgreich registriert");
 			Serial.println("---------------------------------------------------------------------------");
 		}
+
+		return RegistrationSuccess;
 	}
 
 	else // jwt and UserID not found in arguments
@@ -134,7 +136,10 @@ void setup()
 	FastLED.setBrightness(20);
 
 	leds[0] = CRGB(255, 255, 255);
+	leds[1] = CRGB(0,0,255);
 	FastLED.show();
+
+	delay(4000);
 
 	if (!CFH_Device.DeviceAlreadyConfigured()) //Wenn das Gerät noch nicht konfiguriert wurde
 	{
@@ -148,13 +153,15 @@ void setup()
 		Serial.print("IP address:\t");
 		Serial.println(WiFi.softAPIP());
 
-		if (!MDNS.begin("CallForHelpDevice"))
+		if (!MDNS.begin(CFH_DNS_Name))
 		{
 			Serial.println("Error setting up MDNS responder!");
 		}
 		else
 		{
 			Serial.println("DNS Started");
+			Serial.print("DNS_Name: ");
+			Serial.println(CFH_DNS_Name);
 		}
 
 		CFHWebServer.onNotFound([]()
@@ -204,8 +211,9 @@ void setup()
 
 		CFHWebServer.begin();
 	}
-	else                           //Wenn das Gerät bereits konfiguriert wurde
+	else //Wenn das Gerät bereits konfiguriert wurde
 	{
+		DeviceConfigured = true;
 		Serial.println("CallForHelp Gestartet");
 		leds[0] = CRGB(0, 0, 0);
 		FastLED.show();
@@ -272,20 +280,21 @@ void ButtonSwitched(int SwitchState)
 		SwitchTime++;
 		delay(1000);
 	}
-	if (SwitchTime < 5 && digitalRead(SWITCH_PIN) != SwitchState)
+	if (SwitchTime < 5 || digitalRead(SWITCH_PIN) != SwitchState)
 	{
 		if (SwitchState == 1)
 		{
-			leds[1] = CRGB(0, 255, 0);
-			leds[2] = CRGB(0, 255, 0);
+			leds[0] = CRGB(0, 255, 0);
 		}
 		else if (SwitchState == 0)
 		{
-			leds[1] = CRGB(255, 0, 0);
-			leds[2] = CRGB(255, 0, 0);
+			leds[0] = CRGB(255, 0, 0);
 		}
 		FastLED.show();
 		Serial.println("failed");
+		delay(2000);
+		leds[0] = CRGB(0,0,0);
+		FastLED.show();
 		return;
 	}
 
@@ -307,13 +316,7 @@ void ButtonSwitched(int SwitchState)
 	{
 		DisarmAlarm();
 	}
-	else
-	{
-		// Error, Gerät muss irgendwie schnell blinken und dauerhaft in dem Zustand bleiben
-
-		Serial.println("failed");
-		Serial.println("---------------------------------------------------------------------------");
-	}
+	delay(3000);
 	leds[0] = CRGB(0, 0, 0);
 	FastLED.show();
 }
@@ -325,7 +328,7 @@ bool ConnectToWifi()
 	int WLANConnectionTime = 0;
 	Serial.print("Verbindung zu WLAN wird hergestellt.");
 
-	while (WiFi.status() != WL_CONNECTED && WLANConnectionTime < 10)
+	while (WiFi.status() != WL_CONNECTED && WLANConnectionTime < 15)
 	{
 		if (leds[0] == CRGB(0, 0, 255))
 		{
@@ -343,7 +346,7 @@ bool ConnectToWifi()
 	}
 
 	//Sofern Zeit kleiner 5sek und Wifi verbunden wird weitergemacht
-	if (WLANConnectionTime < 10 && WiFi.status() == WL_CONNECTED)
+	if (WLANConnectionTime < 15 && WiFi.status() == WL_CONNECTED)
 	{
 		Serial.println("Verbunden!");
 		Serial.print("IP-Adresse: ");
@@ -367,10 +370,7 @@ bool ConnectToWifi()
 //Triggers the alarm with specific DeviceID, UserId, JWT, Current or old GPS Position
 void TriggerAlarm()
 {
-
-	CFH_Structs::GPS_Position GPS_Position = CFH_Device.Connection_Instance.getGPS_position();
-
-	if (CFH_Device.TriggerAlarm(GPS_Position.Latitude, GPS_Position.Longitude))
+	if (CFH_Device.TriggerAlarm(CFH_Device.Connection_Instance.getGPS_position()))
 	{
 		leds[0] = CRGB(255, 0, 0);
 		FastLED.show();
@@ -393,7 +393,7 @@ void DisarmAlarm()
 		leds[0] = CRGB(0, 255, 0);
 		FastLED.show();
 
-		delay(10000);
+		delay(5000);
 		leds[0] = CRGB(0, 0, 0);
 		FastLED.show();
 		oldStatus = 0;

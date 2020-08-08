@@ -12,8 +12,8 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug",
-            "executable": "c:/Users/LYCRIs/TH-DEV/Digitaler Hilferuf/callHelp-embedded/Arduino Projects/Main/.pio/build/d1_mini/firmware.elf",
-            "toolchainBinDir": "C:/Users/LYCRIs/.platformio/packages/toolchain-xtensa/bin",
+            "executable": "c:/Users/magnu/TH-DEV/callHelp-embedded/Arduino Projects/Main/.pio/build/d1_mini/firmware.elf",
+            "toolchainBinDir": "C:/Users/magnu/.platformio/packages/toolchain-xtensa/bin",
             "preLaunchTask": {
                 "type": "PlatformIO",
                 "task": "Pre-Debug"
@@ -24,8 +24,8 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug (skip Pre-Debug)",
-            "executable": "c:/Users/LYCRIs/TH-DEV/Digitaler Hilferuf/callHelp-embedded/Arduino Projects/Main/.pio/build/d1_mini/firmware.elf",
-            "toolchainBinDir": "C:/Users/LYCRIs/.platformio/packages/toolchain-xtensa/bin",
+            "executable": "c:/Users/magnu/TH-DEV/callHelp-embedded/Arduino Projects/Main/.pio/build/d1_mini/firmware.elf",
+            "toolchainBinDir": "C:/Users/magnu/.platformio/packages/toolchain-xtensa/bin",
             "internalConsoleOptions": "openOnSessionStart"
         }
     ]

@@ -43,17 +43,16 @@ CFH_Structs::HTTP_Request_Struct CFH_DeviceFunctions::TestUserIDandJWT(String Us
 
 	if (httpCode > 0)
 	{
-		Serial.println("Code > 0");
-		Serial.println("Request String: ");
-		Serial.println(http.getString());
 		JSON_HTTP_Request = JSON_Instance.DeserializeHTTPRequestStruct(http.getString());
+
+		Serial.print("Success: ");
+		Serial.println(JSON_HTTP_Request.Success);
 
 		http.end(); //Ends HTTP Request
 		return JSON_HTTP_Request;
 	}
 	else
 	{
-		Serial.println("code < 0");
 		http.end(); //Ends HTTP Request
 		return JSON_HTTP_Request;
 	}
