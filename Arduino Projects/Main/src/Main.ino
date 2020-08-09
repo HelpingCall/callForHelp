@@ -33,96 +33,6 @@ String NetworkSSID = "Magnus";   // ggf. = CFHWebServer.arg("NetworkSSID");
 String NetworkPassword = "Schnuller"; // ggf. = CFHWebServer.arg("NetworkPassword");
 
 
-// starting registration of device
-bool RegisterDevice()
-{
-	bool RegistrationSuccess = false;
-
-	Serial.print("Number of Arguments: ");
-	Serial.println(CFHWebServer.args());
-
-	//if(paramsNr != (2 || 4)) return;
-	if (CFHWebServer.hasArg("userID") && CFHWebServer.hasArg("jwt"))  // Arguments found
-	{
-		Serial.print("userID: ");
-		String UserIDParameter = CFHWebServer.arg("userID");
-		Serial.println(UserIDParameter);
-
-		Serial.print("jwt: ");
-		String jwtParameter = CFHWebServer.arg("jwt");
-		Serial.println(CFHWebServer.arg("jwt"));
-
-		if(ConnectToWifi())
-		{
-			Serial.println("Testing UserID and JWT");
-			CFH_Structs::HTTP_Request_Struct TestUserIDandJWTStruct = CFH_Device.TestUserIDandJWT(UserIDParameter, jwtParameter);
-			
-			if (TestUserIDandJWTStruct.Success)
-			{
-				CFH_Device.writeConfigured(jwtParameter, UserIDParameter, TestUserIDandJWTStruct.deviceID);
-				RegistrationSuccess = true;
-			}
-			WiFi.disconnect();
-		}
-		else
-		{
-			if (false)   //Use Mobile Connection
-			{
-				CFH_Structs::HTTP_Request_Struct TestUserIDandJWTStruct = CFH_Device.TestUserIDandJWT(UserIDParameter, jwtParameter);
-
-				if (TestUserIDandJWTStruct.Success)
-				{
-					CFH_Device.writeConfigured(jwtParameter, UserIDParameter, TestUserIDandJWTStruct.deviceID);
-
-					RegistrationSuccess = true;
-
-					//disconnect Mobile
-				}
-			}
-		}
-
-		if (RegistrationSuccess)
-		{
-			CFHWebServer.send(200, "text/plain", "true");
-
-			Serial.println("Gerät erfolgreich registriert");
-			WiFi.softAPdisconnect();
-			CFHWebServer.close();
-
-			Serial.println("---------------------------------------------------------------------------");
-		}
-		else
-		{
-			CFHWebServer.send(200, "text/plain", "false");
-
-			Serial.println("Gerät wurde nicht erfolgreich registriert");
-			Serial.println("---------------------------------------------------------------------------");
-		}
-
-		return RegistrationSuccess;
-	}
-
-	else // jwt and UserID not found in arguments
-	{
-		Serial.println("Necessary arguments not found!");
-		Serial.println("All arguments:");
-		for (int i = 0; i < CFHWebServer.args(); i++)
-		{
-			String message = "Arg nº" + (String)i + " –> ";
-			message += CFHWebServer.argName(i) + ": ";
-			message += CFHWebServer.arg(i) + "\n";
-			Serial.println(message);
-		}
-		CFHWebServer.send(200, "text/plain", "false");
-
-		Serial.println("Gerät wurde nicht erfolgreich registriert");
-		Serial.println("---------------------------------------------------------------------------");
-	}
-}
-
-
-
-
 #pragma region next to work on
 
 //setup which starts at each start of the device
@@ -361,6 +271,93 @@ bool ConnectToWifi()
 }
 
 #pragma endregion
+
+// starting registration of device
+bool RegisterDevice()
+{
+	bool RegistrationSuccess = false;
+
+	Serial.print("Number of Arguments: ");
+	Serial.println(CFHWebServer.args());
+
+	//if(paramsNr != (2 || 4)) return;
+	if (CFHWebServer.hasArg("userID") && CFHWebServer.hasArg("jwt"))  // Arguments found
+	{
+		Serial.print("userID: ");
+		String UserIDParameter = CFHWebServer.arg("userID");
+		Serial.println(UserIDParameter);
+
+		Serial.print("jwt: ");
+		String jwtParameter = CFHWebServer.arg("jwt");
+		Serial.println(CFHWebServer.arg("jwt"));
+
+		if(ConnectToWifi())
+		{
+			Serial.println("Testing UserID and JWT");
+			CFH_Structs::HTTP_Request_Struct TestUserIDandJWTStruct = CFH_Device.TestUserIDandJWT(UserIDParameter, jwtParameter);
+			
+			if (TestUserIDandJWTStruct.Success)
+			{
+				CFH_Device.writeConfigured(jwtParameter, UserIDParameter, TestUserIDandJWTStruct.deviceID);
+				RegistrationSuccess = true;
+			}
+			WiFi.disconnect();
+		}
+		else
+		{
+			if (false)   //Use Mobile Connection
+			{
+				CFH_Structs::HTTP_Request_Struct TestUserIDandJWTStruct = CFH_Device.TestUserIDandJWT(UserIDParameter, jwtParameter);
+
+				if (TestUserIDandJWTStruct.Success)
+				{
+					CFH_Device.writeConfigured(jwtParameter, UserIDParameter, TestUserIDandJWTStruct.deviceID);
+
+					RegistrationSuccess = true;
+
+					//disconnect Mobile
+				}
+			}
+		}
+
+		if (RegistrationSuccess)
+		{
+			CFHWebServer.send(200, "text/plain", "true");
+
+			Serial.println("Gerät erfolgreich registriert");
+			WiFi.softAPdisconnect();
+			CFHWebServer.close();
+
+			Serial.println("---------------------------------------------------------------------------");
+		}
+		else
+		{
+			CFHWebServer.send(200, "text/plain", "false");
+
+			Serial.println("Gerät wurde nicht erfolgreich registriert");
+			Serial.println("---------------------------------------------------------------------------");
+		}
+
+		return RegistrationSuccess;
+	}
+
+	else // jwt and UserID not found in arguments
+	{
+		Serial.println("Necessary arguments not found!");
+		Serial.println("All arguments:");
+		for (int i = 0; i < CFHWebServer.args(); i++)
+		{
+			String message = "Arg nº" + (String)i + " –> ";
+			message += CFHWebServer.argName(i) + ": ";
+			message += CFHWebServer.arg(i) + "\n";
+			Serial.println(message);
+		}
+		CFHWebServer.send(200, "text/plain", "false");
+
+		Serial.println("Gerät wurde nicht erfolgreich registriert");
+		Serial.println("---------------------------------------------------------------------------");
+	}
+}
 
 
 

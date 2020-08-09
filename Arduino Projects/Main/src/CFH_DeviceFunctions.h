@@ -76,7 +76,7 @@ public:
 	void updateDeviceID(String DeviceID);
 
 	//Safes current Position to EEPROM     --> new header file
-	bool writeGPSPosition(String);
+	bool writeOldGPSPosition(String);
 
 #pragma endregion
 
