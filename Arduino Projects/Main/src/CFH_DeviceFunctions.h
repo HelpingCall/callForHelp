@@ -2,24 +2,26 @@
 #define __CFH_RegisterDevice__
 
 #include <Arduino.h>
+#include <SoftwareSerial.h>
+
 #include <CFH_JSON.h>
 #include <CFH_Connection.h>
-
 #include <CFH_Structs.h>
+
+SoftwareSerial Sim800lStream(D1,D2);  //D1 => TX     D2 => RX
+
 
 class CFH_DeviceFunctions
 {
 public:
 
 	bool DeviceConfigured = false;
-
+	CFH_Connection Connection_Instance;
 	CFH_JSON JSON_Instance;
 	
-	CFH_Connection Connection_Instance;
 
 	CFH_DeviceFunctions()
 	{
-
 	}
 
 #pragma region Basic_Functions

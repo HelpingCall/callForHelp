@@ -26,11 +26,11 @@ CRGB leds[NUM_LEDS];
 ESP8266WebServer CFHWebServer(80);
 CFH_DeviceFunctions CFH_Device;
 
-//String NetworkSSID = "FRITZ!Box 7530 UM";   // ggf. = CFHWebServer.arg("NetworkSSID");
-//String NetworkPassword = "Anke1209"; // ggf. = CFHWebServer.arg("NetworkPassword");
+String NetworkSSID = "FRITZ!Box 7530 UM";   // ggf. = CFHWebServer.arg("NetworkSSID");
+String NetworkPassword = "Anke1209"; // ggf. = CFHWebServer.arg("NetworkPassword");
 
-String NetworkSSID = "Magnus";   // ggf. = CFHWebServer.arg("NetworkSSID");
-String NetworkPassword = "Schnuller"; // ggf. = CFHWebServer.arg("NetworkPassword");
+//String NetworkSSID = "Magnus";   // ggf. = CFHWebServer.arg("NetworkSSID");
+//String NetworkPassword = "Schnuller"; // ggf. = CFHWebServer.arg("NetworkPassword");
 
 
 #pragma region next to work on
