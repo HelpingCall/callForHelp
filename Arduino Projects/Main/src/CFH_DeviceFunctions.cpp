@@ -59,8 +59,10 @@ CFH_Structs::HTTP_Request_Struct CFH_DeviceFunctions::TestUserIDandJWT(String Us
 	}
 }
 
-bool CFH_DeviceFunctions::TriggerAlarm(CFH_Structs::GPS_Position GPS_Position)
+bool CFH_DeviceFunctions::TriggerAlarm()
 {
+	CFH_Structs::GPS_Position gpsPositon = Connection_Instance.getGPS_position();
+
 	EEPROM.begin(786);
 	Serial.print("EEPROM[30]: ");
 	String deivceasd = "asdadsa";
@@ -82,7 +84,7 @@ bool CFH_DeviceFunctions::TriggerAlarm(CFH_Structs::GPS_Position GPS_Position)
   	delay(1000);
 
 	Serial.println("Trigger Alarm: ");
-	return Connection_Instance.BooleanHTTPRequest(TriggerAlarmHTTPRequestLink, JSON_Instance.SerializeTriggerAlarm(DeviceID, UserID, JWT, GPS_Position.Latitude, GPS_Position.Longitude));
+	return Connection_Instance.BooleanHTTPRequest(TriggerAlarmHTTPRequestLink, JSON_Instance.SerializeTriggerAlarm(DeviceID, UserID, JWT, gpsPositon.Latitude, gpsPositon.Longitude));
 }
 
 bool CFH_DeviceFunctions::DisarmAlarm()

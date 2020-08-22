@@ -10,15 +10,14 @@
 
 SoftwareSerial Sim800lStream(D1,D2);  //D1 => TX     D2 => RX
 
+CFH_Connection Connection_Instance(Sim800lStream);
+CFH_JSON JSON_Instance;
 
 class CFH_DeviceFunctions
 {
 public:
 
 	bool DeviceConfigured = false;
-	CFH_Connection Connection_Instance;
-	CFH_JSON JSON_Instance;
-	
 
 	CFH_DeviceFunctions()
 	{
@@ -30,7 +29,7 @@ public:
 	bool DeviceAlreadyConfigured();
 
 	//Triggers the alarm for the specific device und user
-	bool TriggerAlarm(CFH_Structs::GPS_Position GPS_Position);
+	bool TriggerAlarm();
 
 	//Disarms the alarm for the specific device and user
 	bool DisarmAlarm();

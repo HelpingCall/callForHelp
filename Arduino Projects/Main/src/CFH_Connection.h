@@ -11,15 +11,15 @@
 #define DEFAULT_SIM_PIN_RST 3
 
 
+CFH_JSON JSON_Connection_Instance;
+
 #define TIME_OUT_READ_SERIAL 5000
 
 class CFH_Connection
 {
 
     protected:
-        CFH_JSON JSON_Connection_Instance;
-    
-        Stream& Sim800lStream;
+        Stream& SimStream;
         unsigned int _timeout;
         String _buffer;
         void _readSerial();
@@ -31,21 +31,21 @@ class CFH_Connection
         unsigned int SIM_PIN_TX;
         unsigned int SIM_PIN_RST;
 
-        CFH_Connection(Stream& SerialStream) : Sim800lStream(SerialStream)
+        CFH_Connection(Stream& SerialStream) : SimStream(SerialStream)
         {
             SIM_PIN_RX = DEFAULT_SIM_PIN_RX;
             SIM_PIN_TX = DEFAULT_SIM_PIN_TX;
             SIM_PIN_RST = DEFAULT_SIM_PIN_RST;
         }
 
-        CFH_Connection(Stream& SerialStream, uint SIM_RX, uint SIM_TX) : Sim800lStream(SerialStream)
+        CFH_Connection(Stream& SerialStream, uint SIM_RX, uint SIM_TX) : SimStream(SerialStream)
         {
             SIM_PIN_RX = SIM_RX;
             SIM_PIN_TX = SIM_TX;
             SIM_PIN_RST = DEFAULT_SIM_PIN_RST;
         }
 
-        CFH_Connection(Stream& SerialStream, uint SIM_RX, uint SIM_TX, uint SIM_RST) : Sim800lStream(SerialStream)
+        CFH_Connection(Stream& SerialStream, uint SIM_RX, uint SIM_TX, uint SIM_RST) : SimStream(SerialStream)
         {
             SIM_PIN_RX = SIM_RX;
             SIM_PIN_TX = SIM_TX;

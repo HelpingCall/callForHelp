@@ -10,7 +10,7 @@ const char* ssid = "CallForHelp_Device"; // The name of the Wi-Fi network that w
 const char* password = "schnuller";   // The password required to connect to it, leave blank for an open network
 const char* CFH_DNS_Name = "CFH_Device";
 
-#define LED_PIN    5  // Pin für die LED Data
+#define LED_PIN    D6  // Pin für die LED Data
 #define NUM_LEDS   2  // Anzahl der LEDs zur Anzeige vom Status etc.
 #define SWITCH_PIN D0  // Pin des Schalters
 
@@ -340,7 +340,6 @@ bool RegisterDevice()
 
 		return RegistrationSuccess;
 	}
-
 	else // jwt and UserID not found in arguments
 	{
 		Serial.println("Necessary arguments not found!");
@@ -356,10 +355,9 @@ bool RegisterDevice()
 
 		Serial.println("Gerät wurde nicht erfolgreich registriert");
 		Serial.println("---------------------------------------------------------------------------");
+		return false;
 	}
 }
-
-
 
 
 #pragma region fully_implemented
@@ -367,7 +365,7 @@ bool RegisterDevice()
 //Triggers the alarm with specific DeviceID, UserId, JWT, Current or old GPS Position
 void TriggerAlarm()
 {
-	if (CFH_Device.TriggerAlarm(CFH_Device.Connection_Instance.getGPS_position()))
+	if (CFH_Device.TriggerAlarm())
 	{
 		leds[0] = CRGB(255, 0, 0);
 		FastLED.show();
