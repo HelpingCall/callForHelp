@@ -4,20 +4,13 @@
 #include <Arduino.h>
 #include <SoftwareSerial.h>
 
-#include <CFH_JSON.h>
-#include <CFH_Connection.h>
-#include <CFH_Structs.h>
+#include "CFH_Connection.h"
+#include "CFH_Structs.h"
 
-SoftwareSerial Sim800lStream(D1,D2);  //D1 => TX     D2 => RX
-
-CFH_Connection Connection_Instance(Sim800lStream);
-CFH_JSON JSON_Instance;
 
 class CFH_DeviceFunctions
 {
 public:
-
-	bool DeviceConfigured = false;
 
 	CFH_DeviceFunctions()
 	{
@@ -26,13 +19,13 @@ public:
 #pragma region Basic_Functions
 
 	//Checks if the device is already configured
-	bool DeviceAlreadyConfigured();
+	static bool DeviceAlreadyConfigured();
 
 	//Triggers the alarm for the specific device und user
-	bool TriggerAlarm();
+	static bool TriggerAlarm();
 
 	//Disarms the alarm for the specific device and user
-	bool DisarmAlarm();
+	static bool DisarmAlarm();
 
 #pragma endregion
 
@@ -42,10 +35,10 @@ public:
 #pragma region HTTP_Functions
 
 	//Test ID and JWT using Website API
-	CFH_Structs::HTTP_Request_Struct TestUserIDandJWT(String UserID, String JWT);
+	static CFH_Structs::HTTP_Request_Struct TestUserIDandJWT(String UserID, String JWT);
 
 	//Write DeviceConfigurationTemplate, JWT, UserID, DeviceID to EEPROM
-	void writeConfigured(String JWT, String UserID, String DeviceID);
+	static void writeConfigured(String JWT, String UserID, String DeviceID);
 
 #pragma endregion
 
@@ -55,10 +48,10 @@ public:
 #pragma region Essential_EEPROM
 
 	//Clear complete EEPROM
-	void clearEEPROM();
+	static void clearEEPROM();
 
 	//Prints complete EEPROM to Serial Monitor  -> maybe later website if needed for dev
-	void GetFullEEPROM();
+	static void GetFullEEPROM();
 
 #pragma endregion
 
@@ -68,16 +61,16 @@ public:
 #pragma region Not_Implemented
 
 	//To Update JWT
-	void updateJWT(String JWT);
+	static void updateJWT(String JWT);
 
 	//To update UserID
-	void updateUserID(String UserID);
+	static void updateUserID(String UserID);
 
 	//To update DeviceID
-	void updateDeviceID(String DeviceID);
+	static void updateDeviceID(String DeviceID);
 
 	//Safes current Position to EEPROM     --> new header file
-	bool writeOldGPSPosition(String);
+	static bool writeOldGPSPosition(String);
 
 #pragma endregion
 

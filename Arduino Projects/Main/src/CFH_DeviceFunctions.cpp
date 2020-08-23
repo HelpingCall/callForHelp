@@ -1,11 +1,11 @@
 #include <Arduino.h>
-#include <CFH_DeviceFunctions.h>
-
 #include <EEPROM.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266HTTPClient.h>
 #include <ESP8266mDNS.h>
+
+#include "CFH_DeviceFunctions.h"
 
 //const char* ssid = "CallForHelp_Device"; // The name of the Wi-Fi network that will be created
 //const char* password = "schnuller";   // The password required to connect to it, leave blank for an open network
@@ -35,7 +35,8 @@ CFH_Structs::HTTP_Request_Struct CFH_DeviceFunctions::TestUserIDandJWT(String Us
   	http.begin(RegisterDeviceHTTPRequestLink);
 	http.addHeader("Content-Type", "application/json");
 
-	int httpCode = http.POST(JSON_Instance.SerializeRegisterDevice(UserID, JWT));
+	int httpCode = http.POST(
+		CFH_JSON::SerializeRegisterDevice(UserID, JWT));
 	Serial.print("Code: ");
 	Serial.println(httpCode);
 
@@ -46,7 +47,7 @@ CFH_Structs::HTTP_Request_Struct CFH_DeviceFunctions::TestUserIDandJWT(String Us
 		Serial.println("Code > 0");
 		Serial.println("Request String: ");
 		Serial.println(http.getString());
-		JSON_HTTP_Request = JSON_Instance.DeserializeHTTPRequestStruct(http.getString());
+		JSON_HTTP_Request = CFH_JSON::DeserializeHTTPRequestStruct(http.getString());
 
 		http.end(); //Ends HTTP Request
 		return JSON_HTTP_Request;
@@ -61,7 +62,7 @@ CFH_Structs::HTTP_Request_Struct CFH_DeviceFunctions::TestUserIDandJWT(String Us
 
 bool CFH_DeviceFunctions::TriggerAlarm()
 {
-	CFH_Structs::GPS_Position gpsPositon = Connection_Instance.getGPS_position();
+	//CFH_Structs::GPS_Position gpsPositon = Connection_Instance.getGPS_position();
 
 	EEPROM.begin(786);
 	Serial.print("EEPROM[30]: ");
@@ -84,7 +85,8 @@ bool CFH_DeviceFunctions::TriggerAlarm()
   	delay(1000);
 
 	Serial.println("Trigger Alarm: ");
-	return Connection_Instance.BooleanHTTPRequest(TriggerAlarmHTTPRequestLink, JSON_Instance.SerializeTriggerAlarm(DeviceID, UserID, JWT, gpsPositon.Latitude, gpsPositon.Longitude));
+	//return Connection_Instance.BooleanHTTPRequest(TriggerAlarmHTTPRequestLink, JSON_Instance.SerializeTriggerAlarm(DeviceID, UserID, JWT, gpsPositon.Latitude, gpsPositon.Longitude));
+	return CFH_Connection::BooleanHTTPRequest(TriggerAlarmHTTPRequestLink, CFH_JSON::SerializeTriggerAlarm(DeviceID, UserID, JWT, "40.0", "40.0"));
 }
 
 bool CFH_DeviceFunctions::DisarmAlarm()
@@ -110,7 +112,7 @@ bool CFH_DeviceFunctions::DisarmAlarm()
   	delay(1000);
 
 	Serial.println("Disarm Alarm: ");
-	return Connection_Instance.BooleanHTTPRequest(DisarmAlarmHTTPRequestLink, JSON_Instance.SerializeDisarmAlarm(DeviceID, UserID, JWT));
+	return CFH_Connection::BooleanHTTPRequest(DisarmAlarmHTTPRequestLink, CFH_JSON::SerializeDisarmAlarm(DeviceID, UserID, JWT));
 }
 
 #pragma endregion
@@ -209,13 +211,11 @@ bool CFH_DeviceFunctions::DeviceAlreadyConfigured()
 	if (String(CheckDeviceConfiguration).equals(String(DeviceConfigurationTemplate)))
 	{
 		Serial.println("Device Configuration confirmed!");
-		DeviceConfigured = true;
 		return true;
 	}
 	else
 	{
 		Serial.println("Device Configuration failed!");
-		DeviceConfigured = false;
 		return false;
 	}
 }

@@ -1,11 +1,12 @@
 #include <Arduino.h>
+
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266HTTPClient.h>
 
-#include <CFH_Connection.h>
+#include "CFH_Connection.h"
 
-#include <CFH_Structs.h>
+#include "CFH_Structs.h"
 
 //const char* ssid = "CallForHelp_Device"; // The name of the Wi-Fi network that will be created
 //const char* password = "schnuller";   // The password required to connect to it, leave blank for an open network
@@ -22,7 +23,6 @@ CFH_Structs::GPS_Position CFH_Connection::getGPS_position()
     Serial.println("Write AT Commands now");
 
  	SIM800_send("AT");
-
 
  	//Set Error Mode
  	Serial.println(SIM800_send("AT+CMEE=2"));
@@ -88,7 +88,7 @@ bool CFH_Connection::BooleanHTTPRequest(String RequestLink, String JSON_String)
 	if (httpCode > 0)
 	{
 
-		if(JSON_Connection_Instance.DeserializeHTTPRequestBoolean(http.getString()))
+		if(CFH_JSON::DeserializeHTTPRequestBoolean(http.getString()))
 		{
 			Serial.println("success");
 			http.end(); //Ends HTTP Request
@@ -113,24 +113,24 @@ void CFH_Connection::_readSerial() {
 
 	_buffer = "";
 	uint64_t timeOld = millis();
-	while (!SimStream.available() && !(millis() > timeOld + TIME_OUT_READ_SERIAL)) { ; }
-	if(SimStream.available()) { _buffer = SimStream.readString(); }
+	while (!Sim800lStream.available() && !(millis() > timeOld + TIME_OUT_READ_SERIAL)) { ; }
+	if(Sim800lStream.available()) { _buffer = Sim800lStream.readString(); }
 }
 
 void CFH_Connection::_readSerial(uint32_t timeout) {
 	_buffer = "";
 	uint64_t timeOld = millis();
-	while (!SimStream.available() && !(millis() > timeOld + timeout)) { ; }
-	if(SimStream.available()) { _buffer = SimStream.readString(); }
+	while (!Sim800lStream.available() && !(millis() > timeOld + timeout)) { ; }
+	if(Sim800lStream.available()) { _buffer = Sim800lStream.readString(); }
 }
 
 String CFH_Connection::SIM800_send(String incoming) //Function to communicate with SIM800 module
 {
-    SimStream.println(incoming); delay(100); //Print what is being sent to GSM module
+    Sim800lStream.println(incoming); delay(100); //Print what is being sent to GSM module
     String result = "";
-    while (SimStream.available()) //Wait for result
+    while (Sim800lStream.available()) //Wait for result
     {
-    char letter = SimStream.read();
+    char letter = Sim800lStream.read();
     result = result + String(letter); //combine char to string to get result
     }
     return result; //return the result

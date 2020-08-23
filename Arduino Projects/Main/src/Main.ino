@@ -3,8 +3,8 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 
-#include <CFH_DeviceFunctions.h>
-#include <CFH_Connection.h>
+#include "CFH_DeviceFunctions.h"
+#include "CFH_Connection.h"
 
 const char* ssid = "CallForHelp_Device"; // The name of the Wi-Fi network that will be created
 const char* password = "schnuller";   // The password required to connect to it, leave blank for an open network
@@ -24,7 +24,6 @@ CRGB leds[NUM_LEDS];
 //TODO: DNS Server aktivieren für CallForHelp
 
 ESP8266WebServer CFHWebServer(80);
-CFH_DeviceFunctions CFH_Device;
 
 String NetworkSSID = "FRITZ!Box 7530 UM";   // ggf. = CFHWebServer.arg("NetworkSSID");
 String NetworkPassword = "Anke1209"; // ggf. = CFHWebServer.arg("NetworkPassword");
@@ -46,12 +45,12 @@ void setup()
 	FastLED.setBrightness(20);
 
 	leds[0] = CRGB(255, 255, 255);
-	leds[1] = CRGB(0,0,255);
+	leds[1] = CRGB(0, 0, 255);
 	FastLED.show();
 
 	delay(4000);
 
-	if (!CFH_Device.DeviceAlreadyConfigured()) //Wenn das Gerät noch nicht konfiguriert wurde
+	if (!CFH_DeviceFunctions::DeviceAlreadyConfigured()) //Wenn das Gerät noch nicht konfiguriert wurde
 	{
 		Serial.println();
 		WiFi.softAP(ssid, password);
@@ -84,7 +83,7 @@ void setup()
 		CFHWebServer.on("/ShowEEPROM", []()
 			{
 				CFHWebServer.send(200, "text/plain", "Showing EEPROM");
-				CFH_Device.GetFullEEPROM();
+				CFH_DeviceFunctions::GetFullEEPROM();
 				Serial.println("---------------------------------------------------------------------------");
 			});  //GGF: EEPROM auf der Website ausgeben
 
@@ -203,7 +202,7 @@ void ButtonSwitched(int SwitchState)
 		FastLED.show();
 		Serial.println("failed");
 		delay(2000);
-		leds[0] = CRGB(0,0,0);
+		leds[0] = CRGB(0, 0, 0);
 		FastLED.show();
 		return;
 	}
@@ -291,14 +290,14 @@ bool RegisterDevice()
 		String jwtParameter = CFHWebServer.arg("jwt");
 		Serial.println(CFHWebServer.arg("jwt"));
 
-		if(ConnectToWifi())
+		if (ConnectToWifi())
 		{
 			Serial.println("Testing UserID and JWT");
-			CFH_Structs::HTTP_Request_Struct TestUserIDandJWTStruct = CFH_Device.TestUserIDandJWT(UserIDParameter, jwtParameter);
-			
+			CFH_Structs::HTTP_Request_Struct TestUserIDandJWTStruct = CFH_DeviceFunctions::TestUserIDandJWT(UserIDParameter, jwtParameter);
+
 			if (TestUserIDandJWTStruct.Success)
 			{
-				CFH_Device.writeConfigured(jwtParameter, UserIDParameter, TestUserIDandJWTStruct.deviceID);
+				CFH_DeviceFunctions::writeConfigured(jwtParameter, UserIDParameter, TestUserIDandJWTStruct.deviceID);
 				RegistrationSuccess = true;
 			}
 			WiFi.disconnect();
@@ -307,11 +306,11 @@ bool RegisterDevice()
 		{
 			if (false)   //Use Mobile Connection
 			{
-				CFH_Structs::HTTP_Request_Struct TestUserIDandJWTStruct = CFH_Device.TestUserIDandJWT(UserIDParameter, jwtParameter);
+				CFH_Structs::HTTP_Request_Struct TestUserIDandJWTStruct = CFH_DeviceFunctions::TestUserIDandJWT(UserIDParameter, jwtParameter);
 
 				if (TestUserIDandJWTStruct.Success)
 				{
-					CFH_Device.writeConfigured(jwtParameter, UserIDParameter, TestUserIDandJWTStruct.deviceID);
+					CFH_DeviceFunctions::writeConfigured(jwtParameter, UserIDParameter, TestUserIDandJWTStruct.deviceID);
 
 					RegistrationSuccess = true;
 
@@ -365,7 +364,7 @@ bool RegisterDevice()
 //Triggers the alarm with specific DeviceID, UserId, JWT, Current or old GPS Position
 void TriggerAlarm()
 {
-	if (CFH_Device.TriggerAlarm())
+	if (CFH_DeviceFunctions::TriggerAlarm())
 	{
 		leds[0] = CRGB(255, 0, 0);
 		FastLED.show();
@@ -382,7 +381,7 @@ void TriggerAlarm()
 //Disarms the alarm with specific DeviceID, UserID, JWT
 void DisarmAlarm()
 {
-	if (CFH_Device.DisarmAlarm())
+	if (CFH_DeviceFunctions::DisarmAlarm())
 	{
 		Serial.println("Alarm disarmed");
 		leds[0] = CRGB(0, 255, 0);
