@@ -85,7 +85,6 @@ bool CFH_DeviceFunctions::TriggerAlarm()
   	delay(1000);
 
 	Serial.println("Trigger Alarm: ");
-	//return Connection_Instance.BooleanHTTPRequest(TriggerAlarmHTTPRequestLink, JSON_Instance.SerializeTriggerAlarm(DeviceID, UserID, JWT, gpsPositon.Latitude, gpsPositon.Longitude));
 	return CFH_Connection::BooleanHTTPRequest(TriggerAlarmHTTPRequestLink, CFH_JSON::SerializeTriggerAlarm(DeviceID, UserID, JWT, "40.0", "40.0"));
 }
 

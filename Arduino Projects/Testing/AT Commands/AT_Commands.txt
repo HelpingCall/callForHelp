@@ -1,4 +1,4 @@
-AT+CFUN=1,1 => restart
+ AT+CFUN=1,1 => restart
 
 AT+CREG? => registered?
 
@@ -10,3 +10,7 @@ AT+CPIN=1234 => Pin eingabe (1234 ist der Code, sofern es nicht geht, testet mal
 
 AT+CMEE=1 => Error Code wird ausgegeben anstatt Error
 AT+CMEE=2 => Error code samt Beschreibung
+
+AT+SAPBR=3,1,"APN","internet.t-mobile"
+AT+SAPBR=3,1,"USER","internet.t-d1.de"
+AT+SAPBR=3,1,"PWD","t-mobile"

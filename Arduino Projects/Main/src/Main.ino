@@ -105,14 +105,19 @@ void setup()
 			{
 				if (RegisterDevice())
 				{
-					CFHWebServer.send(200, "text/plain", "Registration succeeded");
-					Serial.println("Registration succeeded");
+					CFHWebServer.send(200, "text/plain", "true");
+					DeviceConfigured = true;
+					Serial.println("Gerät erfolgreich registriert");
+					WiFi.softAPdisconnect();
+					CFHWebServer.close();
+
 					Serial.println("---------------------------------------------------------------------------");
 				}
 				else
 				{
-					CFHWebServer.send(200, "text/plain", "Registration failed");
-					Serial.println("Registration failed");
+					CFHWebServer.send(200, "text/plain", "false");
+
+					Serial.println("Gerät wurde nicht erfolgreich registriert");
 					Serial.println("---------------------------------------------------------------------------");
 				}
 
@@ -317,24 +322,6 @@ bool RegisterDevice()
 					//disconnect Mobile
 				}
 			}
-		}
-
-		if (RegistrationSuccess)
-		{
-			CFHWebServer.send(200, "text/plain", "true");
-
-			Serial.println("Gerät erfolgreich registriert");
-			WiFi.softAPdisconnect();
-			CFHWebServer.close();
-
-			Serial.println("---------------------------------------------------------------------------");
-		}
-		else
-		{
-			CFHWebServer.send(200, "text/plain", "false");
-
-			Serial.println("Gerät wurde nicht erfolgreich registriert");
-			Serial.println("---------------------------------------------------------------------------");
 		}
 
 		return RegistrationSuccess;
