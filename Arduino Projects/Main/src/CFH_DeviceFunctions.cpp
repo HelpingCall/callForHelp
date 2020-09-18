@@ -7,9 +7,6 @@
 
 #include "CFH_DeviceFunctions.h"
 
-//const char* ssid = "CallForHelp_Device"; // The name of the Wi-Fi network that will be created
-//const char* password = "schnuller";   // The password required to connect to it, leave blank for an open network
-
 const char DeviceConfigurationTemplate[29] = "DeviceAlreadyConfigured:TRUE";
 
 const String TriggerAlarmHTTPRequestLink = "http://babyyodahook.xyz/rest/arm";
@@ -19,10 +16,14 @@ const String RegisterDeviceHTTPRequestLink = "http://babyyodahook.xyz/rest/Regis
 const int DeviceID_Size = 37;
 const int UserID_Size = 37;
 const int JWT_Size = 513;
+const int SSID_Size = 50;
+const int Password_Size = 50;
 
 const int DeviceID_Position = 30;
 const int UserID_Position = 70;
 const int JWT_position = 110;
+const int SSID_position = 640;
+const int Password_position = 700;
 
 #pragma region HTTP_Functions
 
@@ -36,7 +37,7 @@ CFH_Structs::HTTP_Request_Struct CFH_DeviceFunctions::TestUserIDandJWT(String Us
 	http.addHeader("Content-Type", "application/json");
 
 	int httpCode = http.POST(
-		CFH_JSON::SerializeRegisterDevice(UserID, JWT));
+	CFH_JSON::SerializeRegisterDevice(UserID, JWT));
 	Serial.print("Code: ");
 	Serial.println(httpCode);
 
@@ -61,50 +62,38 @@ CFH_Structs::HTTP_Request_Struct CFH_DeviceFunctions::TestUserIDandJWT(String Us
 }
 
 bool CFH_DeviceFunctions::TriggerAlarm()
-{
-	//CFH_Structs::GPS_Position gpsPositon = Connection_Instance.getGPS_position();
-
+{	
 	EEPROM.begin(786);
-	Serial.print("EEPROM[30]: ");
-	String deivceasd = "asdadsa";
-    char DeviceID[DeviceID_Size];
-    EEPROM.get(DeviceID_Position, DeviceID);
+
+	String DeviceID = getDeviceIDfromEEPROM();
     Serial.println(DeviceID);
 
-    Serial.print("EEPROM[70]: ");
-    char UserID[UserID_Size];
-    EEPROM.get(UserID_Position, UserID);
+	String UserID = getUserIDfromEEPROM();
     Serial.println(UserID);
 
-    Serial.print("EEPROM[110]: ");
-    char JWT[JWT_Size];
-    EEPROM.get(JWT_position, JWT);
+	String JWT = getJWTfromEEPROM();
     Serial.println(JWT);
 
   	EEPROM.end();
   	delay(1000);
 
 	Serial.println("Trigger Alarm: ");
-	return CFH_Connection::BooleanHTTPRequest(TriggerAlarmHTTPRequestLink, CFH_JSON::SerializeTriggerAlarm(DeviceID, UserID, JWT, "40.0", "40.0"));
+	CFH_Structs::GPS_Position GPS_Position = CFH_Connection::getGPS_position();
+	return CFH_Connection::BooleanHTTPRequest(TriggerAlarmHTTPRequestLink, CFH_JSON::SerializeTriggerAlarm(DeviceID, UserID, JWT, GPS_Position.Latitude, GPS_Position.Longitude));
+
 }
 
 bool CFH_DeviceFunctions::DisarmAlarm()
 {
 	EEPROM.begin(786);
 
-	Serial.print("EEPROM[30]: ");
-    char DeviceID[DeviceID_Size];
-    EEPROM.get(DeviceID_Position, DeviceID);
+	String DeviceID = getDeviceIDfromEEPROM();
     Serial.println(DeviceID);
 
-    Serial.print("EEPROM[70]: ");
-    char UserID[UserID_Size];
-    EEPROM.get(UserID_Position, UserID);
+	String UserID = getUserIDfromEEPROM();
     Serial.println(UserID);
 
-    Serial.print("EEPROM[110]: ");
-    char JWT[JWT_Size];
-    EEPROM.get(JWT_position, JWT);
+	String JWT = getJWTfromEEPROM();
     Serial.println(JWT);
 
   	EEPROM.end();
@@ -117,38 +106,52 @@ bool CFH_DeviceFunctions::DisarmAlarm()
 #pragma endregion
 
 
-
-#pragma region Basic_Functions
-
-
-#pragma endregion
-
-
-
 #pragma region EEPROM_Functions
 
-String getDeviceIDfromEEPROM()
+float CFH_DeviceFunctions::getBatteryState()
 {
-	char DeviceID[37];
-    EEPROM.get(30, DeviceID);
+  	return analogRead(A0)/(4.2*1023.0);
+}
+
+
+String CFH_DeviceFunctions::getDeviceIDfromEEPROM()
+{
+	char DeviceID[DeviceID_Size];
+    EEPROM.get(DeviceID_Position, DeviceID);
 	return DeviceID;
 }
 
-String getUserIDfromEEPROM()
+String CFH_DeviceFunctions::getUserIDfromEEPROM()
 {
-	char UserID[37];
-    EEPROM.get(70, UserID);
+	char UserID[UserID_Size];
+    EEPROM.get(UserID_Position, UserID);
 	return UserID;
 }
 
-String getJWTfromEEPROM()
+String CFH_DeviceFunctions::getJWTfromEEPROM()
 {
-	char JWT[37];
-    EEPROM.get(110, JWT);
+	char JWT[JWT_Size];
+    EEPROM.get(JWT_position, JWT);
 	return JWT;
 }
 
-void CFH_DeviceFunctions::writeConfigured(String JWT, String UserID, String DeviceID)
+String CFH_DeviceFunctions::GetPrivateNetworkSSID()
+{
+	char SSID[SSID_Size];
+    EEPROM.get(SSID_position, SSID);
+
+	return SSID;
+}
+
+String CFH_DeviceFunctions::GetPrivateNetworkPassword()
+{
+	char Password[Password_Size];
+    EEPROM.get(Password_position, Password);
+	
+	return Password;
+}
+
+void CFH_DeviceFunctions::writeConfigured(String JWT, String UserID, String DeviceID, String SSID, String Password)
 {
 	EEPROM.begin(786);
 
@@ -161,6 +164,12 @@ void CFH_DeviceFunctions::writeConfigured(String JWT, String UserID, String Devi
     char JWT_Array[513];
     JWT.toCharArray(JWT_Array, 513);
 
+	char SSID_Array[50];
+	SSID.toCharArray(SSID_Array, 50);
+
+	char Password_Array[50];
+	Password.toCharArray(Password_Array, 50);
+
 	EEPROM.put(0, DeviceConfigurationTemplate);  // --> RegisterDevice writeConfigured();
 
 	EEPROM.put(30, DeviceID_Array);
@@ -168,6 +177,10 @@ void CFH_DeviceFunctions::writeConfigured(String JWT, String UserID, String Devi
     EEPROM.put(70, UserID_Array);
 
     EEPROM.put(110, JWT_Array);
+
+	EEPROM.put(640, SSID_Array);
+
+	EEPROM.put(700, Password_Array);
 
 	EEPROM.commit();
 
@@ -259,8 +272,3 @@ void CFH_DeviceFunctions::GetFullEEPROM()
 }
 
 #pragma endregion
-
-
-
-//EEPROM Zugriff Methoden für die genauen Bereiche -> writeJWT(String JWT)  writeUserID(String UserID)    writeDeviceID(String DeviceID) writeConfigured()
-          // -->  ggf. update Funktionen welche dann durch die App aufgerufen werden sofern der Reset Knopf für so und so lange gedrückt wird -> kann Per App dann resettet werden auf Werkseinstellungen

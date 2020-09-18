@@ -1,14 +1,13 @@
 
 #include <Arduino.h>
 
-#include "ArduinoJson.h"
 #include "CFH_JSON.h"
 
 #pragma region Serialize
 
 String CFH_JSON::SerializeTriggerAlarm(String deviceID, String userID, String jwt, String latitude, String longitude)
 {
-	DynamicJsonDocument doc(JSON_OBJECT_SIZE(5) + 720);
+	DynamicJsonDocument doc(JSON_OBJECT_SIZE(6) + 740);
 
 	Serial.print("Set deviceID: ");
 	Serial.println(doc["deviceID"].set(deviceID));
@@ -25,6 +24,9 @@ String CFH_JSON::SerializeTriggerAlarm(String deviceID, String userID, String jw
 	Serial.print("Set longitude: ");
 	Serial.println(doc["longitude"].set(longitude));
 
+	Serial.print("Set BatteryState: ");
+	Serial.println(doc["BatteryState"].set(CFH_DeviceFunctions::getBatteryState()));
+
 	Serial.print("doc: ");
 	serializeJson(doc, Serial);
 	Serial.println();
@@ -37,7 +39,7 @@ String CFH_JSON::SerializeTriggerAlarm(String deviceID, String userID, String jw
 
 String CFH_JSON::SerializeDisarmAlarm(String deviceID, String userID, String jwt)
 {
-	DynamicJsonDocument doc(JSON_OBJECT_SIZE(3) + 680);
+	DynamicJsonDocument doc(JSON_OBJECT_SIZE(4) + 700);
 
 	Serial.print("Set deviceID: ");
 	Serial.println(doc["deviceID"].set(deviceID));
@@ -47,6 +49,9 @@ String CFH_JSON::SerializeDisarmAlarm(String deviceID, String userID, String jwt
 
 	Serial.print("Set jwt: ");
 	Serial.println(doc["jwt"].set(jwt));
+
+	Serial.print("Set BatteryState: ");
+	Serial.println(doc["BatteryState"].set(CFH_DeviceFunctions::getBatteryState()));
 
 	Serial.print("doc: ");
 	serializeJson(doc, Serial);
@@ -60,13 +65,16 @@ String CFH_JSON::SerializeDisarmAlarm(String deviceID, String userID, String jwt
 
 String CFH_JSON::SerializeRegisterDevice(String userID, String jwt)
 {
-	DynamicJsonDocument doc(JSON_OBJECT_SIZE(2) + 630);
+	DynamicJsonDocument doc(JSON_OBJECT_SIZE(3) + 650);
 
 	Serial.print("Set userID: ");
 	Serial.println(doc["userID"].set(userID));
 	
 	Serial.print("Set jwt: ");
 	Serial.println(doc["jwt"].set(jwt));
+
+	Serial.print("Set BatteryState: ");
+	Serial.println(doc["BatteryState"].set(CFH_DeviceFunctions::getBatteryState()));
 
 	Serial.print("doc: ");
 	serializeJson(doc, Serial);
