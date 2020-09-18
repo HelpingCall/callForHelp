@@ -265,26 +265,11 @@ UsedLibraryUrn="urn:adsk.eagle:library:196"
 UsedLibraryUrn="urn:adsk.eagle:library:197"
 UsedLibraryUrn="urn:adsk.eagle:library:198"
 UsedLibraryUrn="urn:adsk.eagle:library:199"
-UsedLibrary="D:/Windows Ordner/Dokumente/EAGLE/libraries/Allwinner V3s.lbr"
-UsedLibrary="D:/Windows Ordner/Dokumente/EAGLE/libraries/DV3CUR24S05S.lbr"
-UsedLibrary="D:/Windows Ordner/Dokumente/EAGLE/libraries/HR911105A.lbr"
-UsedLibrary="D:/Windows Ordner/Dokumente/EAGLE/libraries/IRLL2705.lbr"
-UsedLibrary="D:/Windows Ordner/Dokumente/EAGLE/libraries/LM2576S.lbr"
-UsedLibrary="D:/Windows Ordner/Dokumente/EAGLE/libraries/MIC2250.lbr"
-UsedLibrary="D:/Windows Ordner/Dokumente/EAGLE/libraries/MP1584-dc-brick.lbr"
-UsedLibrary="D:/Windows Ordner/Dokumente/EAGLE/libraries/NS2009.lbr"
-UsedLibrary="D:/Windows Ordner/Dokumente/EAGLE/libraries/OLED.lbr"
-UsedLibrary="D:/Windows Ordner/Dokumente/EAGLE/libraries/RJ45 Jack.lbr"
-UsedLibrary="D:/Windows Ordner/Dokumente/EAGLE/libraries/SIM800LMODULE.lbr"
-UsedLibrary="D:/Windows Ordner/Dokumente/EAGLE/libraries/Spule_100µH_CSD.lbr"
-UsedLibrary="D:/Windows Ordner/Dokumente/EAGLE/libraries/Ws2812B.lbr"
-UsedLibrary="D:/Windows Ordner/Dokumente/EAGLE/libraries/esp8266modules.lbr"
-UsedLibrary="D:/Windows Ordner/Dokumente/EAGLE/libraries/smd-footprint.lbr"
 
 [Win_1]
 Type="Control Panel"
 Number=0
 
 [Desktop]
-Screen="1368 912"
+Screen="4480 1440"
 Window="Win_1"
