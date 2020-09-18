@@ -38,7 +38,7 @@ public:
 	static CFH_Structs::HTTP_Request_Struct TestUserIDandJWT(String UserID, String JWT);
 
 	//Write DeviceConfigurationTemplate, JWT, UserID, DeviceID to EEPROM
-	static void writeConfigured(String JWT, String UserID, String DeviceID);
+	static void writeConfigured(String JWT, String UserID, String DeviceID, String SSID, String Password);
 
 #pragma endregion
 
@@ -53,12 +53,30 @@ public:
 	//Prints complete EEPROM to Serial Monitor  -> maybe later website if needed for dev
 	static void GetFullEEPROM();
 
+	//Gets PrivateNetworkSSID from EEPROM
+	static String GetPrivateNetworkSSID();
+
+	//Gets privateNetworkPassword from EEPROM
+	static String GetPrivateNetworkPassword();
+
+	//Gets DeviceID from EEPROM
+	static String getDeviceIDfromEEPROM();
+
+	//GetsUserID from EEPROM
+	static String getUserIDfromEEPROM();
+
+	//Gets JWT from EEPROM
+	static String getJWTfromEEPROM();
+
 #pragma endregion
 
 
 
 
 #pragma region Not_Implemented
+
+	//Gets the current BatteryState
+	static float getBatteryState();
 
 	//To Update JWT
 	static void updateJWT(String JWT);

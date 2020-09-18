@@ -7,30 +7,28 @@
 #include "CFH_Connection.h"
 
 const char* ssid = "CallForHelp_Device"; // The name of the Wi-Fi network that will be created
-const char* password = "schnuller";   // The password required to connect to it, leave blank for an open network
+const char* password = "CFH_Device";   // The password required to connect to it, leave blank for an open network
 const char* CFH_DNS_Name = "CFH_Device";
 
 #define LED_PIN    D6  // Pin für die LED Data
 #define NUM_LEDS   2  // Anzahl der LEDs zur Anzeige vom Status etc.
 #define SWITCH_PIN D0  // Pin des Schalters
 
-//#define Sim_TX D1 // TX Pin des Sim Moduls
-//#define Sim_RX D2 // RX Pin des Sim Moduls
-
 bool DeviceConfigured = false;
 int oldStatus = 0;
 CRGB leds[NUM_LEDS];
 
-//TODO: DNS Server aktivieren für CallForHelp
 
 ESP8266WebServer CFHWebServer(80);
+IPAddress local_IP(192,168,4,22);
+IPAddress gateway(192,168,4,9);
+IPAddress subnet(255,255,255,0);
 
-String NetworkSSID = "FRITZ!Box 7530 UM";   // ggf. = CFHWebServer.arg("NetworkSSID");
-String NetworkPassword = "Anke1209"; // ggf. = CFHWebServer.arg("NetworkPassword");
+String PrivateNetworkSSID = "";   // ggf. = CFHWebServer.arg("NetworkSSID");
+String PrivateNetworkPassword = ""; // ggf. = CFHWebServer.arg("NetworkPassword");
 
-//String NetworkSSID = "Magnus";   // ggf. = CFHWebServer.arg("NetworkSSID");
-//String NetworkPassword = "Schnuller"; // ggf. = CFHWebServer.arg("NetworkPassword");
-
+String OpenNetworkSSID = "FreifunkLippe";
+String OpenNetworkPassword = "";
 
 #pragma region next to work on
 
@@ -41,11 +39,11 @@ void setup()
 	Serial.println();
 	Serial.println("ESP8266 Started");
 	pinMode(SWITCH_PIN, INPUT_PULLDOWN_16);
+	pinMode(A0, INPUT);
 	FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
 	FastLED.setBrightness(20);
 
 	leds[0] = CRGB(255, 255, 255);
-	leds[1] = CRGB(0, 0, 255);
 	FastLED.show();
 
 	delay(4000);
@@ -101,7 +99,8 @@ void setup()
 				Serial.println("---------------------------------------------------------------------------");
 			});
 
-		CFHWebServer.on("/rest/RegisterDevice", []()
+		//CFHWebServer.on("/rest/RegisterDevice", []()
+		CFHWebServer.on("/register", []()
 			{
 				if (RegisterDevice())
 				{
@@ -128,6 +127,8 @@ void setup()
 	else //Wenn das Gerät bereits konfiguriert wurde
 	{
 		DeviceConfigured = true;
+		PrivateNetworkSSID = CFH_DeviceFunctions::GetPrivateNetworkSSID();
+		PrivateNetworkPassword = CFH_DeviceFunctions::GetPrivateNetworkPassword();
 		Serial.println("CallForHelp Gestartet");
 		leds[0] = CRGB(0, 0, 0);
 		FastLED.show();
@@ -238,7 +239,7 @@ void ButtonSwitched(int SwitchState)
 //Connects the device to wifi
 bool ConnectToWifi()
 {
-	WiFi.begin(NetworkSSID, NetworkPassword);
+	WiFi.begin(PrivateNetworkSSID, PrivateNetworkPassword);
 	int WLANConnectionTime = 0;
 	Serial.print("Verbindung zu WLAN wird hergestellt.");
 
@@ -269,8 +270,41 @@ bool ConnectToWifi()
 	}
 	else
 	{
-		Serial.println("WLAN Verbindung konnte nicht hergestellt werden");
-		return false;
+		Serial.println("WLAN Verbindung zum privaten Netzwerk konnte nicht hergestellt werden");
+		WiFi.begin(PrivateNetworkSSID, PrivateNetworkPassword);
+		WLANConnectionTime = 0;
+		Serial.print("Verbindung zu WLAN wird hergestellt.");
+
+		while (WiFi.status() != WL_CONNECTED && WLANConnectionTime < 15)
+		{
+			if (leds[0] == CRGB(0, 0, 255))
+			{
+				leds[0] = CRGB(0, 0, 0);
+
+			}
+			else if (leds[0] == CRGB(0, 0, 0))
+			{
+				leds[0] = CRGB(0, 0, 255);
+			}
+			FastLED.show();
+			delay(500);
+			Serial.print(".");
+			WLANConnectionTime++;
+		}
+
+		//Sofern Zeit kleiner 5sek und Wifi verbunden wird weitergemacht
+		if (WLANConnectionTime < 15 && WiFi.status() == WL_CONNECTED)
+		{
+			Serial.println("Verbunden!");
+			Serial.print("IP-Adresse: ");
+			Serial.println(WiFi.localIP());
+			return true;
+		}
+		else
+		{
+			Serial.println("WLAN Verbindung konnte nicht hergestellt werden");
+			return false;
+		}
 	}
 }
 
@@ -283,17 +317,26 @@ bool RegisterDevice()
 
 	Serial.print("Number of Arguments: ");
 	Serial.println(CFHWebServer.args());
-
-	//if(paramsNr != (2 || 4)) return;
-	if (CFHWebServer.hasArg("userID") && CFHWebServer.hasArg("jwt"))  // Arguments found
+	if(CFHWebServer.hasArg("plain"))
 	{
+		DynamicJsonDocument doc(1024);
+  		deserializeJson(doc, CFHWebServer.arg("plain"));
+  		String UserIDParameter = doc["userID"];
+  		String jwtParameter =  doc["jwt"];
+		String WifiSSID = doc["ssid"];
+		String WifiPassword = doc["password"];
+
 		Serial.print("userID: ");
-		String UserIDParameter = CFHWebServer.arg("userID");
 		Serial.println(UserIDParameter);
 
 		Serial.print("jwt: ");
-		String jwtParameter = CFHWebServer.arg("jwt");
-		Serial.println(CFHWebServer.arg("jwt"));
+		Serial.println(jwtParameter);
+
+		Serial.print("ssid: ");
+		Serial.println(WifiSSID);
+
+		Serial.print("password: ");
+		Serial.println(WifiPassword);
 
 		if (ConnectToWifi())
 		{
@@ -302,30 +345,15 @@ bool RegisterDevice()
 
 			if (TestUserIDandJWTStruct.Success)
 			{
-				CFH_DeviceFunctions::writeConfigured(jwtParameter, UserIDParameter, TestUserIDandJWTStruct.deviceID);
+				CFH_DeviceFunctions::writeConfigured(jwtParameter, UserIDParameter, TestUserIDandJWTStruct.deviceID, WifiSSID, WifiPassword);
 				RegistrationSuccess = true;
 			}
 			WiFi.disconnect();
 		}
-		else
-		{
-			if (false)   //Use Mobile Connection
-			{
-				CFH_Structs::HTTP_Request_Struct TestUserIDandJWTStruct = CFH_DeviceFunctions::TestUserIDandJWT(UserIDParameter, jwtParameter);
-
-				if (TestUserIDandJWTStruct.Success)
-				{
-					CFH_DeviceFunctions::writeConfigured(jwtParameter, UserIDParameter, TestUserIDandJWTStruct.deviceID);
-
-					RegistrationSuccess = true;
-
-					//disconnect Mobile
-				}
-			}
-		}
 
 		return RegistrationSuccess;
 	}
+	//if(paramsNr != (2 || 4)) return;
 	else // jwt and UserID not found in arguments
 	{
 		Serial.println("Necessary arguments not found!");

@@ -2,10 +2,10 @@
 #define __CFH_JSON__
 
 #include "Arduino.h"
-#include <ArduinoJson.h>
 
+#include "ArduinoJson.h"
 #include "CFH_Structs.h"
-
+#include "CFH_DeviceFunctions.h"
 
 class CFH_JSON
 {
@@ -48,7 +48,6 @@ public:
 	#pragma region Future_Functions
 
 	//App functions for registration answer on webserver etc.
-
 
 	//If the User wants to get the position of the CFH_Device -> deviceID, userID, jwt, latitude, longitude
 	//String SerializePassGPS();
